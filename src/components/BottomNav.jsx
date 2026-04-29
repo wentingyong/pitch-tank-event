@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Icon } from './Icons';
 
 const NavItem = ({ icon, label, active, onClick }) => {
 	const iconSrc = {
@@ -38,7 +37,7 @@ const NavItem = ({ icon, label, active, onClick }) => {
 				<div style={{ height: 38 }} />
 				{/* Label - aligned with other nav items */}
 				<div style={{
-					fontFamily: "Inter",
+					fontFamily: '"Inter Variable", Inter, system-ui, sans-serif',
 					fontSize: 11,
 					fontWeight: 400,
 					color: "#FFFFFF",
@@ -86,7 +85,7 @@ const NavItem = ({ icon, label, active, onClick }) => {
 			</div>
 			{/* Label */}
 			<div style={{
-				fontFamily: "Inter",
+				fontFamily: '"Inter Variable", Inter, system-ui, sans-serif',
 				fontSize: 11,
 				fontWeight: 400,
 				color: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.7)",

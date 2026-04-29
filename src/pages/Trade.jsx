@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Icon } from '../components/Icons';
+import { Info, HelpCircle, Clock, BarChart3, ChevronRight, ChevronDown, Trophy, Diamond, TrendingUp, ArrowUpDown, Search } from 'lucide-react';
 import { EventChart, Sparkline } from '../components/Charts';
 
 // ----- Mock data ---------------------------------------------------------
@@ -85,8 +85,8 @@ const Header = () => (
 			</div>
 		</div>
 		<div className="flex items-center gap-2">
-			<IconButton label="Info"><Icon name="info" size={16} /></IconButton>
-			<IconButton label="Help"><Icon name="help" size={16} /></IconButton>
+			<IconButton label="Info"><Info size={16} strokeWidth={1.5} /></IconButton>
+			<IconButton label="Help"><HelpCircle size={16} strokeWidth={1.5} /></IconButton>
 		</div>
 	</div>
 );
@@ -100,25 +100,24 @@ const BalanceRow = ({ secondsLeft }) => (
 			</div>
 			<div className="flex items-center gap-1.5 mt-1.5 text-[12px] num">
 				<span className="text-mint flex items-center gap-1">
-					<Icon name="triangle-up" size={10} color="#40F3C5" />
+					<TrendingUp size={10} color="#40F3C5" strokeWidth={1.5} />
 					$10 (1%)
 				</span>
 				<span className="text-muted">· 30 mins</span>
 			</div>
-			<div className="text-[11px] text-muted mt-1">
-				ROI <span className="text-mint num">+1.02%</span>
-			</div>
+
 		</div>
 
 		<div className="flex flex-col items-end gap-2 mt-1">
-			<Pill className="!h-9 !px-3.5 !pr-3 border-blue/40 !bg-[rgba(42,120,255,0.10)]">
-				<Icon name="clock" size={14} color="#23D6FF" />
-				<span className="num text-white neon-cyan">Trading closes in {formatTimer(secondsLeft)}</span>
-			</Pill>
+
 			<Pill className="!h-9 !px-3.5">
-				<Icon name="chart" size={14} color="#A7B3C9" />
+				<BarChart3 size={14} color="#A7B3C9" strokeWidth={1.5} />
 				<span className="text-white/90">Holdings History</span>
-				<Icon name="chev" size={12} color="#A7B3C9" />
+				<ChevronRight size={12} color="#A7B3C9" strokeWidth={1.5} />
+			</Pill>
+			<Pill className="!h-9 !px-3.5 !pr-3 border-blue/40 !bg-[rgba(42,120,255,0.10)]">
+				<Clock size={14} color="#23D6FF" strokeWidth={1.5} />
+				<span className="num text-white neon-cyan">Trading closes in {formatTimer(secondsLeft)}</span>
 			</Pill>
 		</div>
 	</div>
@@ -136,7 +135,7 @@ const EventPerformance = () => {
 		<section className="glass rounded-[22px] p-3.5 pb-1 mb-4">
 			<div className="flex items-center gap-1.5 mb-1.5 px-1">
 				<span className="font-display text-white/95 text-[14px] font-medium">Event Performance</span>
-				<Icon name="info" size={12} color="#7C8AA6" />
+				<Info size={12} color="#7C8AA6" strokeWidth={1.5} />
 			</div>
 			<EventChart series={EVENT_SERIES} waypoints={waypoints} />
 		</section>
@@ -152,7 +151,7 @@ const FeaturedBanner = () => (
 						background: "linear-gradient(180deg, rgba(138,92,255,0.35), rgba(42,120,255,0.20))",
 						boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.10), 0 0 18px rgba(138,92,255,0.45)"
 					}}>
-					<Icon name="trophy" size={18} color="#F0D49B" />
+					<Trophy size={18} color="#F0D49B" strokeWidth={1.5} />
 				</div>
 				<div className="leading-tight">
 					<div className="font-display text-white text-[14px] font-semibold tracking-tight">Pitch THE One</div>
@@ -169,7 +168,7 @@ const FeaturedBanner = () => (
 						background: "linear-gradient(180deg, rgba(35,214,255,0.20), rgba(42,120,255,0.10))",
 						boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.10)"
 					}}>
-					<Icon name="diamond" size={16} color="#23D6FF" />
+					<Diamond size={16} color="#23D6FF" strokeWidth={1.5} />
 				</div>
 			</div>
 		</div>
@@ -200,7 +199,7 @@ const ExpandedFounder = ({ f, onCollapse }) => {
 				aria-label="Collapse"
 				className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-muted hover:text-white/80"
 				style={{ background: "rgba(255,255,255,0.04)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}>
-				<Icon name="down" size={14} />
+				<ChevronDown size={14} strokeWidth={1.5} />
 			</button>
 
 			{/* Top row: avatar + name + price */}
@@ -213,7 +212,9 @@ const ExpandedFounder = ({ f, onCollapse }) => {
 				<div className="text-right pt-0.5 pr-7">
 					<div className="font-display num text-white text-[15px] font-semibold tracking-tight">${fmtMoney(f.price)}</div>
 					<div className={`num text-[12px] ${isUp ? "text-mint" : "text-orange"} flex items-center justify-end gap-1`}>
-						<Icon name={isUp ? "triangle-up" : "down"} size={9} color={isUp ? "#40F3C5" : "#FF8A2B"} />
+						{isUp
+							? <TrendingUp size={9} color="#40F3C5" strokeWidth={1.5} />
+							: <ChevronDown size={9} color="#FF8A2B" strokeWidth={1.5} />}
 						{isUp ? "+" : ""}{f.change.toFixed(2)}%
 					</div>
 				</div>
@@ -282,7 +283,7 @@ const CollapsedFounder = ({ f, onExpand }) => {
 						{isUp ? "+" : ""}{f.change.toFixed(2)}%
 					</div>
 				</div>
-				<Icon name="chev" size={13} color="#7C8AA6" className="shrink-0" />
+				<ChevronRight size={13} color="#7C8AA6" strokeWidth={1.5} className="shrink-0" />
 			</div>
 		</button>
 	);

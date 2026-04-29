@@ -155,7 +155,7 @@ export const EventChart = ({ width = 358, height = 168, series, waypoints }) => 
 								textAnchor="end"
 								fontSize="9.5"
 								fill="rgba(167,179,201,0.85)"
-								fontFamily="Space Grotesk"
+								fontFamily="Tomorrow, system-ui, sans-serif"
 								className="num"
 							>
 								{g.label}
@@ -234,7 +234,7 @@ export const EventChart = ({ width = 358, height = 168, series, waypoints }) => 
 						textAnchor="middle"
 						fontSize="9"
 						fill="rgba(167,179,201,0.9)"
-						fontFamily="Space Grotesk"
+						fontFamily="Tomorrow, system-ui, sans-serif"
 					>
 						Mar 29
 					</text>
@@ -244,7 +244,7 @@ export const EventChart = ({ width = 358, height = 168, series, waypoints }) => 
 						textAnchor="middle"
 						fontSize="12"
 						fill="#E8FBFF"
-						fontFamily="Space Grotesk"
+						fontFamily="Tomorrow, system-ui, sans-serif"
 						className="num"
 						fontWeight="600"
 					>
@@ -267,7 +267,7 @@ export const EventChart = ({ width = 358, height = 168, series, waypoints }) => 
 						textAnchor="middle"
 						fontSize="9.5"
 						fill="rgba(167,179,201,0.8)"
-						fontFamily="Space Grotesk"
+						fontFamily="Tomorrow, system-ui, sans-serif"
 						className="num"
 					>
 						{label}
