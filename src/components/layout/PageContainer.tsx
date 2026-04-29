@@ -1,5 +1,5 @@
-import { type ReactNode } from 'react';
-import { cn } from '@/lib/utils';
+import { type ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 export interface PageContainerProps {
   children: ReactNode;
@@ -20,8 +20,8 @@ export function PageContainer({ children, className }: PageContainerProps) {
   return (
     <main
       className={cn(
-        'relative w-full max-w-[430px] mx-auto px-4 sm:px-5 pb-32',
-        className
+        "relative h-dvh w-full max-w-[430px] mx-auto overflow-y-auto no-scrollbar px-6 sm:px-7 pb-32",
+        className,
       )}
     >
       {children}

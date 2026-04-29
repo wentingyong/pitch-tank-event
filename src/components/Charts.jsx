@@ -19,10 +19,29 @@ function smoothPath(points) {
 	return d;
 }
 
+function getNiceDomain(values, anchor = 1000) {
+	const lo = Math.min(...values, anchor);
+	const hi = Math.max(...values, anchor);
+	const rawRange = Math.max(hi - lo, 1);
+	const steps = [25, 50, 100, 200, 250, 500, 1000, 2000, 5000];
+	const step = steps.find((s) => s >= rawRange / 2) || steps[steps.length - 1];
+	const min = Math.floor(lo / step) * step;
+	const max = Math.ceil(hi / step) * step;
+	const ticks = [];
+	for (let value = max; value >= min; value -= step) {
+		ticks.push(value);
+	}
+	if (anchor >= min && anchor <= max && !ticks.includes(anchor)) {
+		ticks.push(anchor);
+		ticks.sort((a, b) => b - a);
+	}
+	return { min, max, step, ticks };
+}
+
 /* Map a numeric series to fitted points */
-function fitSeries(values, w, h, padTop = 8, padBottom = 8, padLeft = 0, padRight = 0) {
-	const lo = Math.min(...values);
-	const hi = Math.max(...values);
+function fitSeries(values, w, h, padTop = 8, padBottom = 8, padLeft = 0, padRight = 0, domain) {
+	const lo = domain?.min ?? Math.min(...values);
+	const hi = domain?.max ?? Math.max(...values);
 	const range = hi - lo || 1;
 	const innerW = w - padLeft - padRight;
 	const innerH = h - padTop - padBottom;
@@ -36,25 +55,33 @@ function fitSeries(values, w, h, padTop = 8, padBottom = 8, padLeft = 0, padRigh
 export const EventChart = ({ width = 358, height = 168, series, waypoints }) => {
 	const W = width;
 	const H = height;
-	const padTop = 14;
-	const padBottom = 26;
-	const padLeft = 38;
-	const padRight = 14;
+	const padTop = 16;
+	const padBottom = 32;
+	const padLeft = 44;
+	const padRight = 16;
 	const [hoverIdx, setHoverIdx] = useState(null);
 
-	const pts = fitSeries(series, W, H, padTop, padBottom, padLeft, padRight);
+	const domain = getNiceDomain(series, 1000);
+	const pts = fitSeries(series, W, H, padTop, padBottom, padLeft, padRight, domain);
 	const linePath = smoothPath(pts);
 	const last = pts[pts.length - 1];
+	const plotLeft = padLeft;
+	const plotRight = W - padRight;
+	const plotTop = padTop;
+	const plotBottom = H - padBottom;
+	const plotW = plotRight - plotLeft;
+	const plotH = plotBottom - plotTop;
+	const valueToY = (value) => plotTop + (1 - (value - domain.min) / (domain.max - domain.min || 1)) * plotH;
 
 	// Area fill — extend to baseline
-	const areaPath = `${linePath} L ${last[0].toFixed(2)} ${H - padBottom} L ${pts[0][0].toFixed(2)} ${H - padBottom} Z`;
+	const areaPath = `${linePath} L ${last[0].toFixed(2)} ${plotBottom} L ${pts[0][0].toFixed(2)} ${plotBottom} Z`;
 
-	// Gridlines: 1200 / 1000 / 800
-	const yLines = [
-		{ label: "$1,200", t: 0.0 },
-		{ label: "$1,000", t: 0.5 },
-		{ label: "$800", t: 1.0 },
-	];
+	const yLines = domain.ticks.map((value) => ({
+		value,
+		label: `$${value.toLocaleString("en-US")}`,
+		y: valueToY(value),
+		isAnchor: value === 1000,
+	}));
 
 	// Checkpoint dots at 30-min intervals matching waypoints
 	const checkpoints = waypoints.map((wp) => {
@@ -64,6 +91,10 @@ export const EventChart = ({ width = 358, height = 168, series, waypoints }) => 
 
 	// Time axis labels
 	const xLabels = ["6:00 PM", "6:30", "7:00", "7:30", "8:00"];
+	const xTicks = xLabels.map((label, i) => ({
+		label,
+		x: plotLeft + (i / (xLabels.length - 1)) * plotW,
+	}));
 
 	// Mouse/touch interaction
 	const handlePointerMove = (e) => {
@@ -95,6 +126,7 @@ export const EventChart = ({ width = 358, height = 168, series, waypoints }) => 
 		value: series[activeIdx],
 		idx: activeIdx,
 	};
+	const activeTickIdx = Math.round((activeIdx / (series.length - 1)) * (xTicks.length - 1));
 	const isLatest = hoverIdx === null;
 
 	return (
@@ -144,29 +176,107 @@ export const EventChart = ({ width = 358, height = 168, series, waypoints }) => 
 
 			{/* Grid lines + Y labels */}
 			<g className="chart-grid">
-				{yLines.map((g, i) => {
-					const y = padTop + g.t * (H - padTop - padBottom);
-					return (
-						<g key={i}>
-							<line x1={padLeft} x2={W - padRight} y1={y} y2={y} />
-							<text
-								x={padLeft - 8}
-								y={y + 3}
-								textAnchor="end"
-								fontSize="9.5"
-								fill="rgba(167,179,201,0.85)"
-								fontFamily="Tomorrow, system-ui, sans-serif"
-								className="num"
-							>
-								{g.label}
-							</text>
-						</g>
-					);
-				})}
+				{yLines.map((g) => (
+					<g key={g.value}>
+						<line
+							x1={plotLeft}
+							x2={plotRight}
+							y1={g.y}
+							y2={g.y}
+							stroke={g.isAnchor ? "rgba(232,251,255,0.34)" : "rgba(167,179,201,0.18)"}
+							strokeWidth={g.isAnchor ? "1.2" : "1"}
+							strokeDasharray={g.isAnchor ? "5 7" : "2 7"}
+							strokeLinecap="round"
+						/>
+						<line
+							x1={plotLeft - 4}
+							x2={plotLeft}
+							y1={g.y}
+							y2={g.y}
+							stroke={g.isAnchor ? "rgba(232,251,255,0.72)" : "rgba(167,179,201,0.45)"}
+							strokeWidth="1.1"
+						/>
+						<text
+							x={plotLeft - 10}
+							y={g.y + 3}
+							textAnchor="end"
+							fontSize="9.5"
+							fill={g.isAnchor ? "rgba(232,251,255,0.95)" : "rgba(167,179,201,0.82)"}
+							fontFamily="Tomorrow, system-ui, sans-serif"
+							className="num"
+							fontWeight={g.isAnchor ? "600" : "400"}
+						>
+							{g.label}
+						</text>
+					</g>
+				))}
+				{xTicks.map((tick) => (
+					<line
+						key={`xtick-${tick.label}`}
+						x1={tick.x}
+						x2={tick.x}
+						y1={plotBottom}
+						y2={plotBottom + 4}
+						stroke="rgba(167,179,201,0.45)"
+						strokeWidth="1"
+					/>
+				))}
 			</g>
 
 			{/* Area fill */}
 			<path d={areaPath} fill="url(#evt-fill)" />
+
+			{/* Moving crosshair tied to the active point */}
+			<g opacity={hoverIdx !== null ? "1" : "0.78"}>
+				<line
+					x1={activePoint.x}
+					x2={activePoint.x}
+					y1={plotTop}
+					y2={plotBottom}
+					stroke="url(#evt-vline)"
+					strokeWidth="1.5"
+				/>
+				<line
+					x1={plotLeft}
+					x2={plotRight}
+					y1={activePoint.y}
+					y2={activePoint.y}
+					stroke="rgba(35,214,255,0.34)"
+					strokeWidth="1.3"
+					strokeDasharray="4 6"
+					strokeLinecap="round"
+				/>
+				<line
+					x1={activePoint.x}
+					x2={activePoint.x}
+					y1={plotBottom}
+					y2={plotBottom + 7}
+					stroke="rgba(232,251,255,0.82)"
+					strokeWidth="1.2"
+				/>
+				<line
+					x1={plotLeft - 7}
+					x2={plotLeft}
+					y1={activePoint.y}
+					y2={activePoint.y}
+					stroke="rgba(232,251,255,0.82)"
+					strokeWidth="1.2"
+				/>
+				{hoverIdx !== null && (
+					<text
+						x={plotLeft - 10}
+						y={Math.min(Math.max(activePoint.y + 3, plotTop + 4), plotBottom - 2)}
+						textAnchor="end"
+						fontSize="9.5"
+						fill="#E8FBFF"
+						fontFamily="Tomorrow, system-ui, sans-serif"
+						className="num"
+						fontWeight="600"
+					>
+						${Math.round(activePoint.value).toLocaleString("en-US")}
+					</text>
+				)}
+			</g>
 
 			{/* Line: gradient stroke with triple-stacked glow */}
 			<path
@@ -193,18 +303,6 @@ export const EventChart = ({ width = 358, height = 168, series, waypoints }) => 
 					</g>
 				);
 			})}
-
-			{/* Vertical hover line (gradient fade top/bottom) */}
-			{hoverIdx !== null && (
-				<line
-					x1={activePoint.x}
-					x2={activePoint.x}
-					y1={padTop}
-					y2={H - padBottom}
-					stroke="url(#evt-vline)"
-					strokeWidth="1.5"
-				/>
-			)}
 
 			{/* Active dot (latest with breathing animation, or hover position) */}
 			<g className={isLatest ? "dot-pulse" : ""}>
@@ -257,23 +355,37 @@ export const EventChart = ({ width = 358, height = 168, series, waypoints }) => 
 			)}
 
 			{/* X labels */}
-			{xLabels.map((label, i) => {
-				const x = padLeft + (i / (xLabels.length - 1)) * (W - padLeft - padRight);
+			{xTicks.map((tick, i) => {
+				const isActive = i === activeTickIdx;
 				return (
-					<text
-						key={i}
-						x={x}
-						y={H - 8}
-						textAnchor="middle"
-						fontSize="9.5"
-						fill="rgba(167,179,201,0.8)"
-						fontFamily="Tomorrow, system-ui, sans-serif"
-						className="num"
-					>
-						{label}
-					</text>
+					<g key={tick.label}>
+						{isActive && (
+							<rect
+								x={tick.x - 22}
+								y={H - 20}
+								width="44"
+								height="15"
+								rx="7.5"
+								fill="rgba(35,214,255,0.12)"
+								stroke="rgba(35,214,255,0.28)"
+							/>
+						)}
+						<text
+							x={tick.x}
+							y={H - 9}
+							textAnchor="middle"
+							fontSize="9.5"
+							fill={isActive ? "#E8FBFF" : "rgba(167,179,201,0.8)"}
+							fontFamily="Tomorrow, system-ui, sans-serif"
+							className="num"
+							fontWeight={isActive ? "600" : "400"}
+						>
+							{tick.label}
+						</text>
+					</g>
 				);
 			})}
+
 		</svg>
 	);
 };
@@ -325,6 +437,133 @@ export const Sparkline = ({ width = 110, height = 34, series, color = "#40F3C5",
 				opacity="0.9"
 			/>
 			<path d={linePath} stroke={color} strokeWidth="1.4" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+			<circle cx={last[0]} cy={last[1]} r="2.4" fill={color} />
+			<circle cx={last[0]} cy={last[1]} r="6" fill={color} opacity="0.35" filter={`url(#${glowId})`} />
+		</svg>
+	);
+};
+
+/* Expanded trend chart with axes for founder detail cards */
+export const ExpandedSparkline = ({ width = 358, height = 74, series, color = "#40F3C5", live = false }) => {
+	const W = width;
+	const H = height;
+	const padTop = 8;
+	const padBottom = 20;
+	const padLeft = 30;
+	const padRight = 8;
+	const domain = getNiceDomain(series, 0);
+	const pts = fitSeries(series, W, H, padTop, padBottom, padLeft, padRight, domain);
+	const linePath = smoothPath(pts);
+	const last = pts[pts.length - 1];
+	const plotLeft = padLeft;
+	const plotRight = W - padRight;
+	const plotBottom = H - padBottom;
+	const plotH = H - padTop - padBottom;
+	const valueToY = (value) => padTop + (1 - (value - domain.min) / (domain.max - domain.min || 1)) * plotH;
+	const areaPath = `${linePath} L ${last[0].toFixed(2)} ${plotBottom} L ${pts[0][0].toFixed(2)} ${plotBottom} Z`;
+	const id = useId();
+	const fillId = `ef-${id}`;
+	const glowId = `eg-${id}`;
+	const yTicks = [domain.max, Math.round((domain.max + domain.min) / 2), domain.min];
+	const xLabels = ["6:00 PM", "6:30", "7:00", "7:30", "8:00"];
+
+	return (
+		<svg
+			width="100%"
+			viewBox={`0 0 ${W} ${H}`}
+			className={live ? "spark-live block" : "block"}
+			style={{ color, overflow: "visible" }}
+		>
+			<defs>
+				<linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
+					<stop offset="0%" stopColor={color} stopOpacity="0.50" />
+					<stop offset="100%" stopColor={color} stopOpacity="0" />
+				</linearGradient>
+				<filter id={glowId} x="-50%" y="-100%" width="200%" height="320%">
+					<feGaussianBlur stdDeviation="2" result="b1" />
+					<feGaussianBlur stdDeviation="5" result="b2" />
+					<feMerge>
+						<feMergeNode in="b2" />
+						<feMergeNode in="b1" />
+						<feMergeNode in="SourceGraphic" />
+					</feMerge>
+				</filter>
+			</defs>
+
+			<g className="chart-grid">
+				{yTicks.map((value) => {
+					const y = valueToY(value);
+					return (
+						<g key={`y-${value}`}>
+							<line
+								x1={plotLeft}
+								x2={plotRight}
+								y1={y}
+								y2={y}
+								stroke="rgba(167,179,201,0.16)"
+								strokeDasharray="2 7"
+								strokeLinecap="round"
+							/>
+							<line
+								x1={plotLeft - 4}
+								x2={plotLeft}
+								y1={y}
+								y2={y}
+								stroke="rgba(167,179,201,0.42)"
+							/>
+							<text
+								x={plotLeft - 8}
+								y={y + 3}
+								textAnchor="end"
+								fontSize="8"
+								fill="rgba(167,179,201,0.72)"
+								fontFamily="Tomorrow, system-ui, sans-serif"
+								className="num"
+							>
+								{value}
+							</text>
+						</g>
+					);
+				})}
+				{xLabels.map((label, i) => {
+					const x = plotLeft + (i / (xLabels.length - 1)) * (plotRight - plotLeft);
+					return (
+						<g key={label}>
+							<line
+								x1={x}
+								x2={x}
+								y1={plotBottom}
+								y2={plotBottom + 4}
+								stroke="rgba(167,179,201,0.38)"
+							/>
+							<text
+								x={x}
+								y={H - 5}
+								textAnchor="middle"
+								fontSize="8"
+								fill="rgba(167,179,201,0.72)"
+								fontFamily="Tomorrow, system-ui, sans-serif"
+								className="num"
+							>
+								{label}
+							</text>
+						</g>
+					);
+				})}
+			</g>
+
+			<path d={areaPath} fill={`url(#${fillId})`} />
+			<path
+				d={linePath}
+				stroke={color}
+				strokeWidth="2"
+				fill="none"
+				filter={`url(#${glowId})`}
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				opacity="0.9"
+			/>
+			<path d={linePath} stroke={color} strokeWidth="1.35" fill="none" strokeLinecap="round" strokeLinejoin="round" />
 			<circle cx={last[0]} cy={last[1]} r="2.4" fill={color} />
 			<circle cx={last[0]} cy={last[1]} r="6" fill={color} opacity="0.35" filter={`url(#${glowId})`} />
 		</svg>

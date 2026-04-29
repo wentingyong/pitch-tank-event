@@ -28,7 +28,7 @@ export function MainLayout() {
   };
 
   return (
-    <div className="page-bg min-h-screen flex justify-center">
+    <div className="page-bg h-dvh overflow-hidden flex justify-center">
       <PageContainer>
         <Outlet />
       </PageContainer>

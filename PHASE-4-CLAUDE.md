@@ -1,666 +1,293 @@
-# PitchTank · Phase 4 — Trade Page Refactor
+# PitchTank · Phase 4 — Trade Page Style Refactor
 
 > Instructions for Claude Code to execute autonomously.
-> This is the largest phase. Plan for ~600 lines of changes total.
+>
+> **Critical rule for this phase**: The user is satisfied with the existing Trade page **layout, content, and interaction logic**. This phase only swaps the visual styling to use the v2.1.5 design system. **Do not change** what's on screen, what order things appear in, what text is shown, or how things behave. Only change *how* the existing pieces are styled and *which primitive* renders them.
 
 ## Goal
 
-Refactor the legacy `src/pages/Trade.jsx` into a TypeScript, primitive-driven, v2.1.5-compliant page. Visual output should match the v2.1.5 demo exactly. The 350-line monolith becomes a 50-line composer of 6 sub-components.
+Migrate `src/pages/Trade.jsx` to TypeScript and replace every legacy class (`.glass`, `.glass-strong`, `.halo-blue`, `.halo-purple`, `.halo-row`, `.glass-tinted-*`, inline button styles, manual percent/money formatting) with the Phase 2 primitives (`GlassCard`, `Button`, `IconButton`, `Tabs`, `Avatar`, `TrendValue`, `Money`, `Timer`, `Sentiment`).
 
-## Why this matters
+The page's layout, the section order, the text content, the click-to-expand behavior, the header structure, the tabs that exist, the buttons that exist — **all of these stay exactly as they are**. Only the rendering primitives change.
 
-- Phase 2 introduced 9 primitives (`GlassCard`, `Button`, `IconButton`, `Tabs`, `Avatar`, `TrendValue`, `Money`, `Timer`, `Sentiment`) but the Trade page still uses the legacy `.glass-strong`, `.halo-blue`, `.glass-tinted-cyan` etc. classes everywhere.
-- Phase 3 wired up routing but kept Trade.jsx intact.
-- This phase removes **all** inline glass/halo classes, **all** inline button styles, and **all** manual percent/money formatting from the Trade page.
-- After this, the design system is *actually* in use — not just defined in `tokens.css` and showcased in `/playground`.
+## What this is, and what this isn't
+
+**This is**:
+- A 1:1 port of `Trade.jsx` (JSX) → `Trade.tsx` (TypeScript)
+- Replacing `<div className="glass-tinted-blue">` with `<GlassCard tone="blue" fill="ghost">` (or whatever v2.1.5 mapping applies — see Step 0)
+- Replacing manual `+ {pct.toFixed(2)}%` with `<TrendValue value={pct} />`
+- Splitting the file into sub-components ONLY for organization. The split mirrors the existing inner components in Trade.jsx; it does not invent new ones.
+
+**This is not**:
+- A redesign
+- An opportunity to add new sections, new buttons, new info icons, new sentiment indicators, new arrows, new labels
+- An opportunity to reorder the page
+- An opportunity to "fix" things you think look wrong
+- A chance to add Pitch The One if it didn't exist, or remove things that did
+
+If something exists in `Trade.jsx` today, it must still exist after this phase, in the same place, with the same text. If something doesn't exist today, do not add it.
 
 ## Hard constraints
 
-These must NOT change in Phase 4:
-
-- ❌ `src/components/Charts.jsx` — `EventChart` visual is final (the user has explicitly approved the current blue→purple gradient + 3-layer glow). Do not touch the EventChart implementation. **Only one** Sparkline change is allowed (auto-color, see Step 6).
-- ❌ `src/components/BottomNav.jsx`
-- ❌ Any token in `src/styles/tokens.css`
-- ❌ Any primitive in `src/components/primitives/`
-- ❌ Router config in `src/router/index.tsx` — Trade route already wired
+- ❌ Do not modify `src/components/Charts.jsx`. The `EventChart` and `Sparkline` visuals are final.
+- ❌ Do not modify `src/components/BottomNav.jsx`.
+- ❌ Do not modify any token in `src/styles/tokens.css`.
+- ❌ Do not modify any primitive in `src/components/primitives/`.
+- ❌ Do not modify the router config.
+- ❌ Do not invent new sections, indicators, or interactions. If you find yourself writing `<Sentiment>`, `<ChevronUp>`, an "Event Info" icon, or anything else not in the original, you are off-spec — stop and re-read the original `Trade.jsx`.
 
 ---
 
-## Step 1 · Extract mock data to a typed module
+## Step 0 · Read the existing Trade.jsx, then map every visual element
 
-The legacy `Trade.jsx` has a 50-line `FOUNDERS` array and a hardcoded `EVENT_SERIES` inline. Pull these out so the page file becomes pure composition.
+Before writing any new code, open `src/pages/Trade.jsx` and identify every JSX element. For each one, decide which primitive replaces it. Build this mapping mentally (or in a scratch comment) before touching the file.
+
+The mapping rules from v2.1.5 are:
+
+### Container → primitive mapping
+
+| Legacy class on container | New primitive |
+|---|---|
+| `glass` (the EventPerformance outer card) | `<GlassCard tone="blue" fill="ghost" size="md">` |
+| `glass-tinted-blue` (Trading Market outer card) | `<GlassCard tone="blue" fill="ghost" size="md">` (same — the outer container is "ghost blue") |
+| `glass-tinted-cyan` (PitchTheOne banner, if it's cyan today) | `<GlassCard tone="featured" fill="solid" size="md">` *only if it visually corresponds to the Pitch The One banner; if it's something else like a generic info card, use `<GlassCard tone="cyan" fill="solid">`* |
+| `halo-row` / collapsed founder row | `<GlassCard tone="cyan" fill="frame" size="sm">` |
+| `glass-strong halo-blue` / expanded founder row | `<GlassCard tone="cyan" fill="active" size="sm">` |
+| Anything else generic | `<GlassCard tone="blue" fill="ghost">` |
+
+⚠️ If the existing `Trade.jsx` does not have a Pitch The One banner, **do not add one**. The `tone="featured"` row in this table only applies if the banner already exists in the source.
+
+⚠️ If the existing `Trade.jsx` uses a different palette mapping (e.g. some card has an orange halo), preserve the semantic intent — orange in the original maps to `tone="orange"` or `fill` adjustments in the new system. Do not change the visual identity of any card.
+
+### Inline element → primitive mapping
+
+| What you see in Trade.jsx | Replace with |
+|---|---|
+| `<button className="primary-btn">` or similar | `<Button variant="primary" size="...">` |
+| Buy button (any styling) | `<Button variant="buy" size="...">` |
+| Sell button (any styling) | `<Button variant="sell" size="...">` |
+| Plain text button (Cancel/Skip etc.) | `<Button variant="tertiary" size="...">` |
+| `<button>` with just an icon | `<IconButton size="sm|md|lg">` |
+| Tab pills row | `<Tabs ...>` (keep the same tabs, same labels, same active default) |
+| `<img src="https://i.pravatar.cc/...">` for avatars | `<Avatar initial="X" />` |
+| Manual `${value.toLocaleString()}` for money | `<Money value={value} />` |
+| Manual `+ {pct.toFixed(2)}%` or `- {pct}%` for trend | `<TrendValue value={pct} />` |
+| Countdown like `5:23s` rendered manually | `<Timer seconds={n} />` |
+| Hand-rolled SVG icon | Equivalent `lucide-react` icon |
+
+### Size choices
+
+Keep button sizes faithful to what's there today:
+- The most prominent CTA in the page → `size="lg"`
+- Buy/Sell pair inside an expanded card → `size="md"`
+- Anything inline / smaller → `size="sm"`
+
+If a button doesn't exist in the original, do not invent one.
+
+### Text content
+
+All headings, labels, captions, button text, tab labels stay verbatim from `Trade.jsx`. Do not rewrite "Trading Market" to "TRADING MARKET" unless it was uppercase originally; the primitives' `font-display` styling already handles tracking/case where needed.
+
+---
+
+## Step 1 · Extract the mock data unchanged
+
+The current `Trade.jsx` has a `FOUNDERS` array and possibly an `EVENT_SERIES` constant inline. Move them out **without changing any values**.
 
 ### Create `src/lib/mock-data.ts`
+
+Copy `FOUNDERS`, `EVENT_SERIES`, and any other top-level constants from `Trade.jsx` verbatim. Add a TypeScript `interface` for `Founder` based on the actual fields present in the source array. Do not add fields that aren't there, do not rename fields, do not change values.
+
+The interface:
 
 ```ts
 export interface Founder {
   id: string;
   name: string;
   company: string;
-  initial: string;
-  avatarColor: string;        // gradient CSS string for the avatar fallback
-  price: number;
-  change: number;             // percentage, e.g. +1.98 or -1.21
-  series: number[];           // sparkline data, normalized 0–100
-  sentiment: 'bullish' | 'bearish' | 'neutral';
+  // ... add the rest by reading the actual fields in Trade.jsx
 }
 
-/**
- * Mock founder list. Order = display order in Trading Market.
- * The first founder is the "active/expanded" one by default in the demo.
- */
 export const FOUNDERS: Founder[] = [
-  {
-    id: 'maya',
-    name: 'Maya Kapoor',
-    company: 'LunaWorks AI',
-    initial: 'M',
-    avatarColor: 'linear-gradient(135deg, #4F7CFF, #A259FF)',
-    price: 23746,
-    change: +1.98,
-    series: [42, 48, 45, 52, 58, 64, 71, 68, 76, 82, 78, 88],
-    sentiment: 'bullish',
-  },
-  {
-    id: 'arjun',
-    name: 'Arjun Reyes',
-    company: 'NebulaPay',
-    initial: 'A',
-    avatarColor: 'linear-gradient(135deg, #A259FF, #4F7CFF)',
-    price: 18402,
-    change: +0.74,
-    series: [50, 52, 48, 54, 56, 53, 58, 60, 57, 62, 64, 61],
-    sentiment: 'bullish',
-  },
-  {
-    id: 'priya',
-    name: 'Priya Wen',
-    company: 'OrbitMesh',
-    initial: 'P',
-    avatarColor: 'linear-gradient(135deg, #FF8A00, #A259FF)',
-    price: 15820,
-    change: -1.21,
-    series: [80, 76, 78, 72, 68, 64, 62, 58, 54, 50, 48, 46],
-    sentiment: 'bearish',
-  },
-  {
-    id: 'diego',
-    name: 'Diego Marín',
-    company: 'GreenGrid',
-    initial: 'D',
-    avatarColor: 'linear-gradient(135deg, #00E5FF, #4F7CFF)',
-    price: 12390,
-    change: +3.42,
-    series: [30, 35, 38, 42, 48, 54, 58, 65, 70, 75, 82, 88],
-    sentiment: 'bullish',
-  },
+  // ... copy verbatim from Trade.jsx
 ];
 
-/**
- * Mock event chart series — used by EventPerformance.
- * Y values are price points over the event window.
- */
-export const EVENT_SERIES: number[] = [
-  64200, 64850, 65100, 64600, 65400, 66200, 65800,
-  67100, 68400, 67900, 69200, 70800, 71400, 72100,
-];
-
-/**
- * Mock event metadata.
- */
-export const EVENT_META = {
-  title: 'Semi Finals · Round 3',
-  closesIn: 5 * 60 + 23,    // seconds — Timer primitive will format
-  totalVolume: 1_240_000,
-  totalBalance: 23_094.57,
-  balanceChange: +12.34,
-};
+// If EVENT_SERIES exists in Trade.jsx, copy it too:
+export const EVENT_SERIES = [/* verbatim */];
 ```
+
+⚠️ If a founder field doesn't exist in `Trade.jsx`, do not add it. If `EVENT_SERIES` doesn't exist as a separate const but is inlined in JSX, leave it inline — don't extract it.
 
 ---
 
-## Step 2 · One-time Sparkline change in Charts.jsx
+## Step 2 · Convert Trade.jsx to Trade.tsx, structure-preserved
 
-This is the **only** Charts.jsx edit allowed. Sparkline currently requires a `color` prop. Make it auto-determine color from series direction.
+### 2.1 · Rename and re-type, no logic changes
 
-### Edit `src/components/Charts.jsx`
+Create `src/pages/Trade.tsx` with the same top-level structure as `Trade.jsx`:
 
-Find the existing `Sparkline` component. The signature today looks something like:
+- Same imports (now updated to use primitives instead of legacy classes)
+- Same `useState` calls in the same order with the same initial values
+- Same handler functions with the same names and bodies
+- Same JSX tree, but with primitives swapped in per Step 0's mapping
+- Same export name (`export function Trade` or `export const Trade = ...`, matching whatever the source uses)
 
-```jsx
-export function Sparkline({ series, color, width = 50, height = 24 }) {
-  // ...
-  const stroke = color || '#00E5FF';
-  // ...
-}
+### 2.2 · Component split
+
+If `Trade.jsx` already defines internal sub-components (e.g. `EventPerformance`, `TradingMarket`, `CollapsedFounder`, `ExpandedFounder`, `Header`, `PitchTheOne`), move each to its own file under `src/pages/trade/sections/`, keeping the **same component name**. Do not rename `CollapsedFounder` to `FounderRow`, do not rename `EventPerformance` to anything else.
+
+The folder layout becomes:
+
+```
+src/pages/
+  Trade.tsx                      ← top-level page, composes the sections
+  trade/
+    sections/
+      Header.tsx                 ← if Trade.jsx has an inline Header, extract it
+      EventPerformance.tsx       ← keeps its current name and content
+      TradingMarket.tsx          ← keeps its current name and content
+      CollapsedFounder.tsx       ← keeps its current name and content
+      ExpandedFounder.tsx        ← keeps its current name and content
+      PitchTheOne.tsx            ← only if it exists in Trade.jsx; same name
 ```
 
-Replace with:
+⚠️ If `Trade.jsx` defines all of these inline as nested function components rather than as named ones, keep the same names when extracting. If `Trade.jsx` uses different names than what I've listed, use the actual names from the source — those names above are guesses based on earlier conversations.
 
-```jsx
-/**
- * Sparkline auto-determines color from series direction.
- *
- * - If series ends higher than it starts → cyan (positive)
- * - If series ends lower than it starts → orange (negative)
- *
- * Callers can still pass `color` to force a specific stroke; otherwise omit it.
- */
-export function Sparkline({ series, color, width = 50, height = 24 }) {
-  if (!series || series.length < 2) return null;
+⚠️ If `Trade.jsx` does NOT have, say, a `PitchTheOne` component, do not create one. The list above is exhaustive of what *might* exist; only port what *does* exist.
 
-  const isUp = series[series.length - 1] >= series[0];
-  const stroke = color || (isUp ? 'var(--c-cyan)' : 'var(--c-orange)');
-  const glow = color || (isUp ? 'rgba(0,229,255,0.5)' : 'rgba(255,138,0,0.4)');
+### 2.3 · Per-section conversion rules
 
-  // Keep the existing path generation logic (don't touch it)
-  // The existing min/max normalization and path d= computation stays the same.
-  // Just change `stroke` to use the derived value, and update the filter:
-  //
-  //   <path d={...} fill="none" stroke={stroke} strokeWidth="1.5"
-  //         filter={`drop-shadow(0 0 3px ${glow})`} />
+For each section file:
 
-  return (
-    /* existing JSX with stroke and filter swapped to use the values above */
-  );
-}
-```
+1. The component takes the same props it took inline in `Trade.jsx` (if it took any).
+2. The JSX tree inside is structurally identical to the inline version.
+3. Wrap container `<div className="glass...">` becomes `<GlassCard tone="..." fill="..." size="...">` per Step 0.
+4. Inline buttons become `<Button>`.
+5. Manual number formatting becomes `<Money>` / `<TrendValue>` / `<Timer>`.
+6. Hand-rolled SVG icons become `lucide-react` icons inside `<IconButton>` (when they were already buttons) or as bare lucide elements (when they were decorative).
+7. Avatar images / initials become `<Avatar>`.
+8. Tab pills become `<Tabs>`.
+9. Spacing/margin classes (`mb-3`, `gap-2`, `flex`, etc.) stay as-is — those are layout, not visual style. Do not strip or restyle them.
 
-⚠️ **Do not rewrite the path-generation logic.** Only change the color/glow derivation and the JSX where stroke is applied. If the existing implementation has a different shape, preserve everything except the color decision.
+### 2.4 · TypeScript conversion
+
+- Add prop interfaces for any component that takes props.
+- Use `Founder` from `mock-data.ts` as the type for any prop that's a founder object.
+- All `useState` calls get type inference from initial values; no explicit generics needed unless the initial value is `null` or `undefined`.
+- Event handlers get the proper event types (`React.MouseEvent<HTMLButtonElement>` etc.) only where TS complains; otherwise use inference.
 
 ---
 
-## Step 3 · Create the trade sections folder
+## Step 3 · Update the top-level Trade composer
 
-All 6 sub-components live under `src/pages/trade/sections/`. Create that folder.
+`Trade.tsx` (the page file itself) stays close to its original shape — same wrappers, same section order, same wrapper divs. Just imports the section components from their new locations.
 
-### 3.1 · `Header.tsx`
-
-Top header — avatar, app title, info icon, help icon. Replaces the manual SVG header.
-
-```tsx
-import { Info, HelpCircle } from 'lucide-react';
-import { Avatar, IconButton } from '@/components/primitives';
-
-export function Header() {
-  return (
-    <header className="flex items-center justify-between pt-5 pb-4">
-      <div className="flex items-center gap-3">
-        <Avatar initial="U" size="md" />
-        <div>
-          <div className="font-display text-xs uppercase tracking-[0.2em] text-pt-text-3">
-            PitchTank
-          </div>
-          <div className="font-display text-base font-medium leading-tight">
-            Live Market
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <IconButton size="md" aria-label="Event info">
-          <Info size={16} strokeWidth={1.5} />
-        </IconButton>
-        <IconButton size="md" aria-label="How it works">
-          <HelpCircle size={16} strokeWidth={1.5} />
-        </IconButton>
-      </div>
-    </header>
-  );
-}
-```
-
-### 3.2 · `BalanceRow.tsx`
-
-Total Balance display. Uses `<GlassCard tone="primary" size="lg">` and the `<Money>` primitive.
-
-```tsx
-import { GlassCard, Money, TrendValue } from '@/components/primitives';
-import { EVENT_META } from '@/lib/mock-data';
-
-export function BalanceRow() {
-  return (
-    <GlassCard tone="primary" size="lg" className="mb-3">
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-pt-text-3">
-            Total Balance
-          </div>
-          <Money
-            value={EVENT_META.totalBalance}
-            size="lg"
-            className="mt-1 block"
-          />
-          <div className="mt-1">
-            <TrendValue value={EVENT_META.balanceChange} size="sm" />
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-pt-text-3">
-            vs last month
-          </div>
-          <TrendValue value={-37.16} size="sm" className="mt-1 block" />
-        </div>
-      </div>
-    </GlassCard>
-  );
-}
-```
-
-### 3.3 · `EventPerformance.tsx`
-
-Wraps the existing `EventChart` (UNTOUCHED). Outer container is `<GlassCard tone="frame" size="md">`.
-
-```tsx
-import { GlassCard } from '@/components/primitives';
-import { EventChart } from '@/components/Charts';
-import { EVENT_SERIES, EVENT_META } from '@/lib/mock-data';
-
-export function EventPerformance() {
-  return (
-    <GlassCard tone="frame" size="md" className="mb-3">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <div className="font-display text-sm font-medium uppercase tracking-wide">
-            Event Performance
-          </div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-pt-text-3 mt-0.5">
-            {EVENT_META.title}
-          </div>
-        </div>
-      </div>
-      <EventChart series={EVENT_SERIES} />
-    </GlassCard>
-  );
-}
-```
-
-⚠️ **Do not pass `width` or `height` to EventChart.** The chart manages its own dimensions internally. If EventChart's prop signature has required width/height, leave them at the existing defaults from Charts.jsx — do not modify the component itself.
-
-### 3.4 · `PitchTheOneBanner.tsx`
-
-The featured banner that links to `/polymarket`. Uses `<GlassCard tone="featured">`.
-
-```tsx
-import { Trophy, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { GlassCard } from '@/components/primitives';
-
-export function PitchTheOneBanner() {
-  const navigate = useNavigate();
-
-  return (
-    <GlassCard
-      tone="featured"
-      size="md"
-      className="mb-3 cursor-pointer transition-transform active:scale-[0.99]"
-      onClick={() => navigate('/polymarket')}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') navigate('/polymarket');
-      }}
-    >
-      <div className="flex items-center gap-3">
-        <div
-          className="w-10 h-10 rounded-xl grid place-items-center shrink-0"
-          style={{
-            background: 'linear-gradient(135deg, #A259FF, #FF8A00)',
-            boxShadow:
-              'inset 0 0 0 1px rgba(255,255,255,0.2), 0 0 18px rgba(220,150,100,0.5)',
-          }}
-        >
-          <Trophy size={18} strokeWidth={1.5} className="text-white" />
-        </div>
-        <div className="flex-1 leading-tight">
-          <div className="font-display text-sm font-medium uppercase tracking-[0.04em] text-pt-featured">
-            Pitch The One
-          </div>
-          <div className="font-mono text-[10px] tracking-[0.05em] text-pt-text-3">
-            Choose your champion
-          </div>
-        </div>
-        <ArrowRight size={16} strokeWidth={1.5} className="text-pt-text-2" />
-      </div>
-    </GlassCard>
-  );
-}
-```
-
-The `text-pt-featured` utility should already exist in tokens.css from Phase 1 — it's the purple→orange gradient text. If not, the existing GlassCard `tone="featured"` provides the right gradient border and background, so the inner text being plain white is acceptable.
-
-### 3.5 · `FounderRow.tsx`
-
-The collapsed list item. `<GlassCard tone="neutral">` (default state).
-
-```tsx
-import type { Founder } from '@/lib/mock-data';
-import { GlassCard, Avatar, Money, TrendValue } from '@/components/primitives';
-import { Sparkline } from '@/components/Charts';
-
-export interface FounderRowProps {
-  founder: Founder;
-  onClick: () => void;
-}
-
-export function FounderRow({ founder, onClick }: FounderRowProps) {
-  return (
-    <GlassCard
-      tone="neutral"
-      size="sm"
-      className="mb-2 cursor-pointer transition-transform active:scale-[0.995]"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') onClick();
-      }}
-    >
-      <div className="flex items-center gap-3">
-        <Avatar
-          initial={founder.initial}
-          size="sm"
-          style={{ background: founder.avatarColor }}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="font-display text-[13px] font-medium tracking-[0.03em] uppercase truncate">
-            {founder.name}
-          </div>
-          <div className="font-mono text-[11px] text-pt-text-3 tracking-[0.05em] truncate">
-            {founder.company}
-          </div>
-        </div>
-        <Sparkline series={founder.series} width={50} height={24} />
-        <div className="text-right shrink-0 min-w-[80px]">
-          <Money value={founder.price} size="sm" className="block" />
-          <TrendValue value={founder.change} size="xs" />
-        </div>
-      </div>
-    </GlassCard>
-  );
-}
-```
-
-### 3.6 · `FounderRowExpanded.tsx`
-
-The expanded state. `<GlassCard tone="neutral" active>` — same background as `FounderRow`, only the border stops shift to 100% opacity (per v2.1.5 spec). Adds Buy/Sell buttons and a sentiment indicator.
-
-```tsx
-import type { Founder } from '@/lib/mock-data';
-import { ChevronUp } from 'lucide-react';
-import {
-  GlassCard,
-  Avatar,
-  Money,
-  TrendValue,
-  Button,
-  Sentiment,
-} from '@/components/primitives';
-import { Sparkline } from '@/components/Charts';
-
-export interface FounderRowExpandedProps {
-  founder: Founder;
-  onCollapse: () => void;
-  onBuy: () => void;
-  onSell: () => void;
-}
-
-export function FounderRowExpanded({
-  founder,
-  onCollapse,
-  onBuy,
-  onSell,
-}: FounderRowExpandedProps) {
-  return (
-    <GlassCard tone="neutral" active size="sm" className="mb-2">
-      {/* Top row — same layout as FounderRow */}
-      <button
-        onClick={onCollapse}
-        className="w-full flex items-center gap-3 mb-3 text-left"
-        aria-label="Collapse"
-      >
-        <Avatar
-          initial={founder.initial}
-          size="sm"
-          style={{ background: founder.avatarColor }}
-        />
-        <div className="flex-1 min-w-0">
-          <div className="font-display text-[13px] font-medium tracking-[0.03em] uppercase">
-            {founder.name}
-          </div>
-          <div className="font-mono text-[11px] text-pt-text-3 tracking-[0.05em]">
-            {founder.company}
-          </div>
-        </div>
-        <Sparkline series={founder.series} width={60} height={28} />
-        <div className="text-right shrink-0 min-w-[80px]">
-          <Money value={founder.price} size="sm" className="block" />
-          <TrendValue value={founder.change} size="xs" />
-        </div>
-        <ChevronUp size={14} strokeWidth={1.5} className="text-pt-text-3" />
-      </button>
-
-      {/* Sentiment row */}
-      <div className="flex items-center justify-between mb-3 px-1">
-        <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-pt-text-3">
-          Crowd Sentiment
-        </span>
-        <Sentiment value={founder.sentiment} />
-      </div>
-
-      {/* Buy / Sell actions */}
-      <div className="grid grid-cols-2 gap-2">
-        <Button variant="buy" size="md" onClick={onBuy}>
-          ▲ Buy
-        </Button>
-        <Button variant="sell" size="md" onClick={onSell}>
-          ▼ Sell
-        </Button>
-      </div>
-    </GlassCard>
-  );
-}
-```
-
-### 3.7 · `TradingMarket.tsx`
-
-The container that holds the founder list. `<GlassCard tone="frame">` — no background, only border.
-
-```tsx
-import { useState } from 'react';
-import { GlassCard, Tabs } from '@/components/primitives';
-import { FOUNDERS, type Founder } from '@/lib/mock-data';
-import { FounderRow } from './FounderRow';
-import { FounderRowExpanded } from './FounderRowExpanded';
-
-export function TradingMarket() {
-  const [expandedId, setExpandedId] = useState<string | null>(FOUNDERS[0].id);
-  const [sortMode, setSortMode] = useState<'price' | 'az'>('price');
-
-  const sorted = [...FOUNDERS].sort((a, b) =>
-    sortMode === 'price' ? b.price - a.price : a.name.localeCompare(b.name)
-  );
-
-  const handleRowClick = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
-  };
-
-  const handleBuy = (founder: Founder) => {
-    // Phase 5 will wire this to BuySellSheet modal
-    console.log('Buy', founder.id);
-  };
-
-  const handleSell = (founder: Founder) => {
-    console.log('Sell', founder.id);
-  };
-
-  return (
-    <GlassCard tone="frame" size="md">
-      <div className="flex items-center justify-between mb-4 px-1">
-        <span className="font-display text-base font-medium uppercase tracking-[0.02em]">
-          Trading Market
-        </span>
-        <Tabs
-          value={sortMode}
-          onValueChange={(v) => setSortMode(v as 'price' | 'az')}
-          options={[
-            { value: 'price', label: 'Price' },
-            { value: 'az', label: 'A-Z' },
-          ]}
-        />
-      </div>
-
-      {sorted.map((founder) =>
-        founder.id === expandedId ? (
-          <FounderRowExpanded
-            key={founder.id}
-            founder={founder}
-            onCollapse={() => setExpandedId(null)}
-            onBuy={() => handleBuy(founder)}
-            onSell={() => handleSell(founder)}
-          />
-        ) : (
-          <FounderRow
-            key={founder.id}
-            founder={founder}
-            onClick={() => handleRowClick(founder.id)}
-          />
-        )
-      )}
-    </GlassCard>
-  );
-}
-```
-
-⚠️ The `Tabs` primitive's exact prop signature was set in Phase 2. If your `Tabs` uses different prop names (e.g. `selected` instead of `value`, `items` instead of `options`), adjust accordingly — but don't change the Tabs primitive itself. Read `src/components/primitives/Tabs.tsx` to confirm the API before writing this file.
-
----
-
-## Step 4 · Compose the new Trade page
-
-### Replace `src/pages/Trade.jsx` entirely with `src/pages/Trade.tsx`:
+Example shape (this is illustrative; match the actual original structure):
 
 ```tsx
 import { Header } from './trade/sections/Header';
-import { BalanceRow } from './trade/sections/BalanceRow';
 import { EventPerformance } from './trade/sections/EventPerformance';
-import { PitchTheOneBanner } from './trade/sections/PitchTheOneBanner';
 import { TradingMarket } from './trade/sections/TradingMarket';
+// ...etc, only those that exist
 
 export function Trade() {
+  // Whatever state lived at the page level in Trade.jsx stays at the page level
+  // (e.g. `expandedFounderId` if it was lifted that high)
+
   return (
     <>
       <Header />
-      <BalanceRow />
       <EventPerformance />
-      <PitchTheOneBanner />
       <TradingMarket />
+      {/* ...same order as Trade.jsx */}
     </>
   );
 }
 ```
 
-That's it. ~10 lines for the page itself. All the visual decisions are in the section files; the page just orders them.
+If the original `Trade.jsx` lifted state up to the top-level (e.g. tracking which founder is expanded), keep it there. If it kept state local to `TradingMarket`, keep it there. **Do not relocate state.**
 
-### Delete the old file:
+---
+
+## Step 4 · Delete the old file
+
+Once `Trade.tsx` works:
 
 ```bash
 rm src/pages/Trade.jsx
 ```
 
----
-
-## Step 5 · Verify the router still resolves Trade correctly
-
-In `src/router/index.tsx` from Phase 3, the import was:
-
-```tsx
-import { Trade } from '@/pages/Trade';
-```
-
-This still works because:
-- The new file is at `src/pages/Trade.tsx`
-- Vite/TypeScript resolve `.tsx` automatically
-- It exports `Trade` as a named export
-
-No router changes needed. Confirm with:
-
-```bash
-grep -n "Trade" src/router/index.tsx
-```
-
-Should show only:
-```tsx
-import { Trade } from '@/pages/Trade';
-{ path: 'trade', element: <Trade /> },
-```
+Confirm `src/router/index.tsx` still resolves: the router import line `import { Trade } from '@/pages/Trade'` works for both `.jsx` and `.tsx`, so no router edit is needed.
 
 ---
 
-## Step 6 · Verification
+## Step 5 · Verify
 
-### 6.1 · Type check
+### 5.1 · Type check
 
 ```bash
 npx tsc --noEmit
 ```
 
-Should pass with no errors. The most common failures here are:
-- A primitive prop name mismatch (e.g. `<Tabs options>` vs `<Tabs items>`) — read the primitive's source and adjust the section file.
-- `Money`/`TrendValue` not accepting a `size` prop — check the primitive signature.
-- `Avatar` not accepting `style` — if the primitive locks down the prop, pass the gradient via a `bg` or `color` prop instead, whatever the primitive supports.
+Expected to pass. Common failures:
+- A primitive prop name mismatch — read the primitive source under `src/components/primitives/` and use its actual prop names.
+- A missing Founder field — if you typed something Trade.jsx didn't actually use, drop it; if Trade.jsx uses a field you didn't type, add it.
 
-### 6.2 · Visual verification
+### 5.2 · Visual diff vs the previous build
 
 ```bash
 npm run dev
 ```
 
-Navigate to `/trade`. The page should render with:
+Open `/trade`. **Side-by-side compare with a screenshot of the previous build** (before this phase). The screen should look like the same page, with the cards now using the v2.1.5 borders/glows/typography instead of the legacy `.halo-*` look.
 
-1. **Header** at the top (avatar + title + info/help icons)
-2. **Total Balance card** — primary blue tone with horizontal gradient bg + matching gradient border, large $23,094.57 number, +12.34% trend
-3. **Event Performance** — frame-toned card containing the EventChart with its existing blue→purple gradient line and 3-layer glow (visually unchanged from before this phase)
-4. **Pitch The One banner** — purple→orange diagonal gradient card with trophy icon, clickable, navigates to `/polymarket`
-5. **Trading Market** — frame-toned outer card containing 4 founder rows. The first (Maya) is expanded with sentiment + Buy/Sell buttons; the other 3 are collapsed
-6. Sparklines: Maya, Arjun, Diego show **cyan** lines (positive); Priya shows **orange** (negative) — auto-determined, not hardcoded
+What should be **identical**:
+- Section order
+- Section content (every label, every number, every word)
+- Which cards are expanded by default
+- Which tabs are active by default
+- Which buttons exist where
+- Click-to-expand behavior
+- Tab switching behavior
+- Any countdown / timer display
+- The chart inside Event Performance
 
-### 6.3 · Functional checks
+What should be **different** (because of the design system swap):
+- Card borders (now conic metal gradient per v2.1.5, not LED halo)
+- Card backgrounds (now semantic per `tone`/`fill`)
+- Button styling (now primitive-driven, with proper shimmer where applicable)
+- Number rendering (now via `Money` / `TrendValue` with consistent tracking and color)
+- Icons (now lucide-react, stroke-width 1.5)
+- Avatars (now via Avatar primitive)
 
-- Click a collapsed founder row → it expands; previous expanded row collapses
-- Click the expanded row's top half → it collapses
-- Click Pitch The One banner → navigates to `/polymarket`
-- Click "Price" / "A-Z" tabs → list reorders
-- Click Buy / Sell → console logs the founder id (modals come in Phase 5)
-- Click Info / Help icons in header → no-op for now (modals come in Phase 5)
-
-### 6.4 · Code quality checks
+### 5.3 · Code-quality grep
 
 ```bash
-# Confirm no .halo-* classes remain in the page
-grep -rn "halo-" src/pages/trade/ src/pages/Trade.tsx
-# Should output nothing
+# No legacy classes anywhere under the trade page
+grep -rn "halo-\|glass-tinted\|glass-strong\|seg-on" src/pages/Trade.tsx src/pages/trade/
+# Should output nothing.
 
-# Confirm no .glass-tinted-* classes remain
-grep -rn "glass-tinted" src/pages/trade/ src/pages/Trade.tsx
-# Should output nothing
+# No raw className="glass" containers (the primitive replaces them)
+grep -rn 'className="glass"' src/pages/Trade.tsx src/pages/trade/
+# Should output nothing.
 
-# Confirm no .glass-strong remains
-grep -rn "glass-strong" src/pages/trade/ src/pages/Trade.tsx
-# Should output nothing
-
-# Confirm Trade.tsx is short
+# Sanity: the page file is a thin composer
 wc -l src/pages/Trade.tsx
-# Should be < 20 lines
 ```
 
-If any of these grep checks return matches, find the offending file and replace the legacy class with the appropriate `<GlassCard>` invocation.
+`Trade.tsx` itself should be roughly the same size as `Trade.jsx` was *before* sub-components were extracted — minus the inline visual definitions, plus imports. If `Trade.jsx` was 350 lines, `Trade.tsx` after extracting 4–6 sections will likely be 30–80 lines. The section files together account for the rest.
 
-### 6.5 · Old file removed
+### 5.4 · Functional checks
 
-```bash
-ls src/pages/Trade.jsx 2>/dev/null
-# Should output: ls: cannot access 'src/pages/Trade.jsx': No such file or directory
-```
+Walk through every interaction on `/trade`:
+- ✅ Clicking a collapsed founder expands it (and collapses any previously expanded one, or whatever the original did — match the original).
+- ✅ Clicking the expanded founder collapses it (if that's how the original behaved).
+- ✅ Tab switches reorder/filter the list (if the original did this).
+- ✅ Buy / Sell buttons fire whatever handler they fired before (likely a `console.log` or a placeholder for Phase 5).
+- ✅ The countdown timer continues to count down (if the original had one).
+- ✅ The event chart still renders.
+
+If any interaction broke, the bug is almost certainly in how a handler was wired through the new primitive — the primitives all support `onClick`, but Buy/Sell/`<Button>` may need the handler on `onClick`, not on a `onPress` or similar.
 
 ---
 
@@ -668,26 +295,44 @@ ls src/pages/Trade.jsx 2>/dev/null
 
 Phase 4 is done when ALL of these are true:
 
-- [ ] `src/lib/mock-data.ts` exists with `FOUNDERS`, `EVENT_SERIES`, `EVENT_META` exported
-- [ ] `src/pages/trade/sections/` contains 6 files: `Header.tsx`, `BalanceRow.tsx`, `EventPerformance.tsx`, `PitchTheOneBanner.tsx`, `FounderRow.tsx`, `FounderRowExpanded.tsx`, `TradingMarket.tsx`
-- [ ] `src/pages/Trade.tsx` exists, < 20 lines, exports `Trade` as a named export
 - [ ] `src/pages/Trade.jsx` is deleted
-- [ ] `Sparkline` in `Charts.jsx` auto-determines color from series direction
-- [ ] `EventChart` in `Charts.jsx` is otherwise unchanged
+- [ ] `src/pages/Trade.tsx` exists and imports from `src/pages/trade/sections/`
+- [ ] Every section component that existed inline in `Trade.jsx` exists as its own file under `src/pages/trade/sections/`, with the **same component name** as before
+- [ ] `src/lib/mock-data.ts` exists with FOUNDERS (and any other extracted constants) typed via a `Founder` interface
+- [ ] No `.halo-*`, `.glass-tinted-*`, `.glass-strong`, `.glass`, `.seg-on` classes anywhere under `src/pages/Trade.tsx` or `src/pages/trade/`
+- [ ] All buttons use `<Button>`; all icon-only buttons use `<IconButton>`
+- [ ] All glass cards use `<GlassCard>`
+- [ ] All numbers use `<Money>` / `<TrendValue>` / `<Timer>` (whichever applies)
+- [ ] All avatars use `<Avatar>`
+- [ ] All tab rows use `<Tabs>`
+- [ ] All hand-rolled SVG icons that survived from Phase 1's `Icons.jsx` deletion are now `lucide-react` icons
 - [ ] `npx tsc --noEmit` passes
-- [ ] `/trade` renders identically to v2.1.5 demo
-- [ ] No `.halo-*`, `.glass-tinted-*`, `.glass-strong` classes anywhere under `src/pages/trade/` or in `Trade.tsx`
-- [ ] Click-to-expand interaction works on founder rows
-- [ ] Pitch The One banner navigates to `/polymarket`
+- [ ] Visual side-by-side: same layout, same content, same order, same interactions; only the styling has shifted to v2.1.5
+
+---
+
+## Common pitfalls to avoid
+
+1. **Inventing content**. If the original doesn't have a sentiment indicator, do not add one. If the original doesn't show a "vs last month" delta, do not add one. If the original has 4 founders, the result has 4 founders — same names, same companies, same data.
+
+2. **Renaming components**. `CollapsedFounder` stays `CollapsedFounder`. `EventPerformance` stays `EventPerformance`. The names are part of the user's mental model of their codebase.
+
+3. **Reordering**. The page's vertical order matches the original line-for-line.
+
+4. **Restyling primitives to match old look**. The primitives are the source of truth now. Do not pass overrides like `style={{ background: 'rgba(...)' }}` to a `GlassCard` to make it look more like the old `halo-blue`. The whole point is to replace the old look with the design system.
+
+5. **Touching Charts.jsx**. The user has approved the existing `EventChart` and `Sparkline` visuals. Do not modify them. If `Sparkline` requires a `color` prop, pass the same color the original passed. If you find yourself wanting to "auto-determine color from series direction" — stop, that's not part of this phase.
+
+6. **Touching primitives**. If a primitive's API doesn't match what you need, that's a signal that you're trying to do something the design system doesn't support — which means you're probably going beyond what the original Trade.jsx actually does. Re-read the original.
 
 ---
 
 ## What Phase 5 will do
 
-Phase 5 adds the modals:
+Phase 5 will add the modal layer on top of this refactored page:
 
-- `BuySellSheet` — bottom-sheet modal opened by Buy/Sell buttons in `FounderRowExpanded`
-- `EventInfoDialog` — centered dialog opened by the Info icon in `Header`
-- `RulesDialog` — centered dialog opened by the Help icon in `Header`
+- `BuySellSheet` — wired to the `<Button variant="buy">` and `<Button variant="sell">` calls inside `ExpandedFounder`
+- `EventInfoDialog` — wired to whichever icon button in the header opens event details (only if such a button exists in `Trade.jsx`)
+- `RulesDialog` — wired to whichever button in the header opens the rules (only if such a button exists)
 
-The handlers in this phase (`handleBuy`, `handleSell`, the icon `aria-label`s without `onClick`) are placeholders that will be wired up next.
+The handlers wired in this phase (likely `console.log` placeholders) will be swapped out for `setSheetOpen(true)` calls in Phase 5.
