@@ -9,13 +9,15 @@ import {
 } from "@/components/primitives";
 import { ExpandedSparkline } from "@/components/Charts";
 import { ringGradient, type Founder } from "@/lib/mock-data";
+import type { TradeSide } from "../BuySellDialog";
 
 export interface ExpandedFounderProps {
   f: Founder;
   onCollapse: () => void;
+  onTrade: (side: TradeSide) => void;
 }
 
-export function ExpandedFounder({ f, onCollapse }: ExpandedFounderProps) {
+export function ExpandedFounder({ f, onCollapse, onTrade }: ExpandedFounderProps) {
   const isUp = f.change >= 0;
   return (
     <GlassCard tone="purple" active size="md" className="relative mb-3">
@@ -93,10 +95,10 @@ export function ExpandedFounder({ f, onCollapse }: ExpandedFounderProps) {
 
       {/* Buy / Sell */}
       <div className="grid grid-cols-2 gap-3">
-        <Button variant="buy" size="md">
+        <Button variant="buy" size="md" onClick={() => onTrade("buy")}>
           Buy
         </Button>
-        <Button variant="sell" size="md">
+        <Button variant="sell" size="md" onClick={() => onTrade("sell")}>
           Sell
         </Button>
       </div>

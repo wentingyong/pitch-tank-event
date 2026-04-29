@@ -5,11 +5,16 @@ import { BalanceRow } from './trade/sections/BalanceRow';
 import { EventPerformance } from './trade/sections/EventPerformance';
 import { FeaturedBanner } from './trade/sections/FeaturedBanner';
 import { TradingMarket, type Sort } from './trade/sections/TradingMarket';
+import { BuySellDialog, type TradeSide } from './trade/BuySellDialog';
 
 export function Trade() {
   const [expandedId, setExpandedId] = useState<string | null>('f1');
   const [sort, setSort] = useState<Sort>('Price');
   const [secondsLeft, setSecondsLeft] = useState(5 * 60);
+  const [tradeDialog, setTradeDialog] = useState<{
+    founderId: string;
+    side: TradeSide;
+  } | null>(null);
 
   // Tick the trading-closes timer
   useEffect(() => {
@@ -24,6 +29,10 @@ export function Trade() {
     return arr;
   }, [sort]);
 
+  const selectedFounder = tradeDialog
+    ? FOUNDERS.find((founder) => founder.id === tradeDialog.founderId) ?? null
+    : null;
+
   return (
     <>
       <Header />
@@ -36,6 +45,15 @@ export function Trade() {
         setExpandedId={setExpandedId}
         sort={sort}
         setSort={setSort}
+        onTrade={(founderId, side) => setTradeDialog({ founderId, side })}
+      />
+      <BuySellDialog
+        open={tradeDialog !== null}
+        onOpenChange={(open) => {
+          if (!open) setTradeDialog(null);
+        }}
+        founder={selectedFounder}
+        initialSide={tradeDialog?.side ?? 'buy'}
       />
     </>
   );
