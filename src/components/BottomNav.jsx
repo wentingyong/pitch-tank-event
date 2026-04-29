@@ -234,8 +234,8 @@ const NavItem = ({ icon, label, active, onClick }) => {
 
 export const BottomNav = ({ tab, setTab }) => (
 	<div
-		className="fixed bottom-0 left-0 z-30 pointer-events-none flex items-end justify-center"
-		style={{ width: "100vw", height: 100 }}
+		className="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 pointer-events-none flex items-end justify-center"
+		style={{ width: "100%", maxWidth: 430, height: 100 }}
 	>
 		<div
 			className="pointer-events-auto relative"

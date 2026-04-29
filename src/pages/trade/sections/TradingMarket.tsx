@@ -1,5 +1,6 @@
 import { GlassCard, Tabs } from '@/components/primitives';
 import type { Founder } from '@/lib/mock-data';
+import type { TradeSide } from '../BuySellDialog';
 import { CollapsedFounder } from './CollapsedFounder';
 import { ExpandedFounder } from './ExpandedFounder';
 
@@ -11,6 +12,7 @@ export interface TradingMarketProps {
   setExpandedId: (id: string | null) => void;
   sort: Sort;
   setSort: (s: Sort) => void;
+  onTrade: (founderId: string, side: TradeSide) => void;
 }
 
 export function TradingMarket({
@@ -19,6 +21,7 @@ export function TradingMarket({
   setExpandedId,
   sort,
   setSort,
+  onTrade,
 }: TradingMarketProps) {
   return (
     <GlassCard tone="frame" size="md" className="mb-5">
@@ -42,7 +45,12 @@ export function TradingMarket({
       <div className="relative">
         {founders.map((f) =>
           f.id === expandedId ? (
-            <ExpandedFounder key={f.id} f={f} onCollapse={() => setExpandedId(null)} />
+            <ExpandedFounder
+              key={f.id}
+              f={f}
+              onCollapse={() => setExpandedId(null)}
+              onTrade={(side) => onTrade(f.id, side)}
+            />
           ) : (
             <CollapsedFounder key={f.id} f={f} onExpand={() => setExpandedId(f.id)} />
           )
