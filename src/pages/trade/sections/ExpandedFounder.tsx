@@ -18,7 +18,7 @@ export interface ExpandedFounderProps {
 export function ExpandedFounder({ f, onCollapse }: ExpandedFounderProps) {
   const isUp = f.change >= 0;
   return (
-    <GlassCard tone="frame" active size="md" className="relative mb-3">
+    <GlassCard tone="purple" active size="md" className="relative mb-3">
       <IconButton
         size="sm"
         aria-label="Collapse"
