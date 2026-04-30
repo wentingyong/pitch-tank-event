@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FOUNDERS } from '@/lib/mock-data';
 import { Header } from './trade/sections/Header';
-import { BalanceRow } from './trade/sections/BalanceRow';
-import { EventPerformance } from './trade/sections/EventPerformance';
-import { FeaturedBanner } from './trade/sections/FeaturedBanner';
+import { TradeTopCard } from './trade/sections/TradeTopCard';
 import { TradingMarket, type Sort } from './trade/sections/TradingMarket';
 import { BuySellDialog, type TradeSide } from './trade/BuySellDialog';
 
@@ -36,17 +34,40 @@ export function Trade() {
   return (
     <>
       <Header />
-      <BalanceRow secondsLeft={secondsLeft} />
-      <EventPerformance />
-      <FeaturedBanner />
-      <TradingMarket
-        founders={sorted}
-        expandedId={expandedId}
-        setExpandedId={setExpandedId}
-        sort={sort}
-        setSort={setSort}
+      <TradeTopCard
+        secondsLeft={secondsLeft}
         onTrade={(founderId, side) => setTradeDialog({ founderId, side })}
       />
+      <div className="relative">
+        <div
+          aria-hidden
+          className="absolute -z-10 pointer-events-none"
+          style={{
+            left: '-28px',
+            right: '-28px',
+            top: 0,
+            bottom: 0,
+            background:
+              // Horizon glow right under the arc — the "cosmic ocean surface"
+              'radial-gradient(140% 60% at 50% 0%, rgba(60,120,230,0.36) 0%, rgba(30,70,180,0.22) 26%, transparent 62%), ' +
+              // Deep navy body fading into the page-bg
+              'linear-gradient(180deg, ' +
+                'rgba(18,38,98,0.62) 0%, ' +
+                'rgba(14,28,76,0.48) 22%, ' +
+                'rgba(10,22,58,0.32) 55%, ' +
+                'rgba(6,14,40,0.18) 85%, ' +
+                'rgba(3,4,13,0) 100%)',
+          }}
+        />
+        <TradingMarket
+          founders={sorted}
+          expandedId={expandedId}
+          setExpandedId={setExpandedId}
+          sort={sort}
+          setSort={setSort}
+          onTrade={(founderId, side) => setTradeDialog({ founderId, side })}
+        />
+      </div>
       <BuySellDialog
         open={tradeDialog !== null}
         onOpenChange={(open) => {

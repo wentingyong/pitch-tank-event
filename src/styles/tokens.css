@@ -100,22 +100,15 @@
   );
 }
 
-.event-performance-card {
+.event-performance-glow {
+  position: relative;
   overflow: visible;
-  background: transparent !important;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  box-shadow:
-    inset 0 1px 0 rgba(184,212,255,0.14),
-    0 0 18px rgba(35,214,255,0.18),
-    0 0 44px rgba(79,124,255,0.22),
-    0 0 76px rgba(162,89,255,0.12);
 }
-.event-performance-card::before {
+.event-performance-glow::before {
   content: "";
   position: absolute;
   inset: -12px;
-  border-radius: inherit;
+  border-radius: var(--radius-card);
   background:
     radial-gradient(80% 90% at 100% 55%, rgba(35,214,255,0.20), transparent 62%),
     radial-gradient(80% 90% at 50% 100%, rgba(79,124,255,0.18), transparent 66%),
@@ -125,13 +118,9 @@
   pointer-events: none;
   z-index: 0;
 }
-.event-performance-card::after {
-  background: linear-gradient(135deg,
-    rgba(184,212,255,0.55) 0%,
-    rgba(79,124,255,0.95) 28%,
-    rgba(162,89,255,0.65) 62%,
-    rgba(35,214,255,0.75) 100%
-  );
+.event-performance-glow > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* === TONE-PRIMARY · 紫蓝水平渐变 (有 bg) === */
@@ -188,7 +177,7 @@
     rgba(79,124,255,0.4) 50%, rgba(0,229,255,0.7) 67%, rgba(184,240,255,1) 83%, rgba(0,229,255,0.5));
 }
 
-/* === TONE-FEATURED · purple → orange (Pitch The One) === */
+/* === TONE-FEATURED · purple → orange accent === */
 .glass-card.tone-featured {
   background:
     radial-gradient(ellipse 70% 60% at 0% 0%, rgba(162,89,255,0.25) 0%, transparent 70%),
@@ -269,6 +258,65 @@
 .size-sm { padding: 12px 14px; }
 .size-md { padding: 18px 20px; }
 .size-lg { padding: 24px 26px; }
+
+/* === HOLDINGS BAR · translucent + gradient border + interactive bloom === */
+.holding-bar {
+  border: 0;
+  padding: 0;
+  transition:
+    transform var(--motion-base),
+    box-shadow var(--motion-base),
+    filter var(--motion-base);
+}
+.holding-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.25px;
+  background: linear-gradient(135deg,
+    var(--seg-c1, rgba(79,124,255,0.9)),
+    var(--seg-c2, rgba(162,89,255,0.9)));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.holding-bar:hover,
+.holding-bar:focus-visible {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.15);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    0 0 22px var(--seg-c1, rgba(79,124,255,0.6)),
+    0 0 42px var(--seg-c2, rgba(162,89,255,0.45));
+  outline: none;
+  z-index: 2;
+}
+.holding-bar:hover::after,
+.holding-bar:focus-visible::after {
+  opacity: 1;
+  padding: 1.75px;
+}
+.holding-bar:active { transform: translateY(0) scale(0.99); }
+
+.holding-avatar {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 9999px;
+}
+.holding-avatar:hover,
+.holding-avatar:focus-visible {
+  filter: drop-shadow(0 0 10px var(--seg-c1, rgba(79,124,255,0.7)))
+          drop-shadow(0 0 20px var(--seg-c2, rgba(162,89,255,0.55)));
+}
 
 /* ============================================================
    BUTTONS
@@ -507,34 +555,6 @@
 .num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-}
-
-.polymarket-banner-link {
-  position: relative;
-  aspect-ratio: 1456 / 415;
-  border-radius: var(--radius-card);
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform var(--motion-fast), filter var(--motion-fast);
-}
-.polymarket-banner-link:hover {
-  filter: brightness(1.04);
-}
-.polymarket-banner-link:active {
-  transform: translateY(1px) scale(0.995);
-}
-.polymarket-banner-link:focus-visible {
-  outline: 2px solid rgba(232,242,255,0.9);
-  outline-offset: 3px;
-}
-.polymarket-banner-link img {
-  aspect-ratio: 1456 / 415;
-  border-radius: inherit;
-  object-fit: contain;
-  filter:
-    drop-shadow(0 0 18px rgba(162,89,255,0.22))
-    drop-shadow(0 0 22px rgba(255,138,0,0.14));
-  user-select: none;
 }
 
 /* ============================================================
