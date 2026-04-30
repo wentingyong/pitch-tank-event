@@ -17,8 +17,8 @@ export function MainLayout() {
   // Derive current tab from URL (e.g. "/trade" → "trade")
   const tab = location.pathname.split('/')[1] || 'trade';
 
-  // BottomNav only knows 5 tabs; for /polymarket and /playground
-  // it should highlight nothing (or default to trade).
+  // BottomNav only knows 5 tabs; for /playground it should
+  // highlight nothing (or default to trade).
   const navTab = ['rankings', 'chat', 'trade', 'network', 'portfolio'].includes(tab)
     ? tab
     : 'trade';

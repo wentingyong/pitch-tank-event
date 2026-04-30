@@ -1,9 +1,8 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 import {
   Avatar,
   Button,
   GlassCard,
-  IconButton,
   Money,
   TrendValue,
 } from "@/components/primitives";
@@ -21,13 +20,15 @@ export function ExpandedFounder({ f, onCollapse, onTrade }: ExpandedFounderProps
   const isUp = f.change >= 0;
   return (
     <GlassCard tone="purple" active size="md" className="relative mb-3">
-      <IconButton
-        size="sm"
+      <button
+        type="button"
         aria-label="Collapse"
         onClick={onCollapse}
-        className="!absolute top-3 right-3 !z-20 pointer-events-auto"
-        icon={<ChevronDown size={14} strokeWidth={1.5} />}
-      />
+        className="z-20 p-1 pointer-events-auto hover:brightness-125 transition-all"
+        style={{ position: "absolute", top: 12, right: 12 }}
+      >
+        <ChevronUp size={16} color="#A7B3C9" strokeWidth={1.5} />
+      </button>
 
       {/* Top row: avatar + name + price */}
       <div className="flex items-start gap-3">
