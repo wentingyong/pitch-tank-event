@@ -6,7 +6,6 @@ import { ChatPage } from '@/pages/ChatPage';
 import { NetworkPage } from '@/pages/NetworkPage';
 import { PortfolioPage } from '@/pages/PortfolioPage';
 import { LoginPage } from '@/pages/LoginPage';
-import { PolymarketPage } from '@/pages/PolymarketPage';
 import { Playground } from '@/pages/Playground';
 
 /**
@@ -20,7 +19,6 @@ import { Playground } from '@/pages/Playground';
  *     /chat                 — community chat
  *     /network              — connections
  *     /portfolio            — user holdings
- *     /polymarket           — prediction market integration (linked from Pitch The One banner)
  *     /playground           — design system showcase (TEMPORARY — remove in Phase 6)
  */
 export const router = createBrowserRouter([
@@ -38,7 +36,6 @@ export const router = createBrowserRouter([
       { path: 'chat', element: <ChatPage /> },
       { path: 'network', element: <NetworkPage /> },
       { path: 'portfolio', element: <PortfolioPage /> },
-      { path: 'polymarket', element: <PolymarketPage /> },
       { path: 'playground', element: <Playground /> },
     ],
   },

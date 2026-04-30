@@ -64,7 +64,7 @@ export function Playground() {
             <div className="text-xs text-pt-text-3 uppercase tracking-widest mb-1">
               Featured
             </div>
-            <div className="font-display">Pitch The One</div>
+            <div className="font-display">Featured Card</div>
           </GlassCard>
         </div>
 
@@ -109,7 +109,7 @@ export function Playground() {
         </div>
 
         <Button variant="featured" size="lg" shimmer className="w-full">
-          ★ Pitch The One
+          ★ Featured Action
         </Button>
 
         <div className="grid grid-cols-2 gap-3">
