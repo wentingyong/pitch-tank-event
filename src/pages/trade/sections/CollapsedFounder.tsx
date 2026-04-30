@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { Avatar, GlassCard, Money, TrendValue } from "@/components/primitives";
 import { Sparkline } from "@/components/Charts";
-import { ringGradient, type Founder } from "@/lib/mock-data";
+import type { Founder } from "@/lib/mock-data";
 
 export interface CollapsedFounderProps {
   f: Founder;
@@ -17,7 +17,7 @@ export function CollapsedFounder({ f, onExpand }: CollapsedFounderProps) {
     >
       <GlassCard tone="frame" size="sm">
         <div className="flex items-center gap-2.5">
-          <Avatar size="sm" name={f.name} photo={f.photo} gradient={ringGradient(f.ring)} />
+          <Avatar size="sm" name={f.name} photo={f.photo} />
           <div className="leading-tight min-w-0 flex-1">
             <div className="font-display text-white text-[13px] font-semibold truncate">
               {f.name}

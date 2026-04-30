@@ -8,7 +8,7 @@ import {
   TrendValue,
 } from "@/components/primitives";
 import { ExpandedSparkline } from "@/components/Charts";
-import { ringGradient, type Founder } from "@/lib/mock-data";
+import type { Founder } from "@/lib/mock-data";
 import type { TradeSide } from "../BuySellDialog";
 
 export interface ExpandedFounderProps {
@@ -31,7 +31,7 @@ export function ExpandedFounder({ f, onCollapse, onTrade }: ExpandedFounderProps
 
       {/* Top row: avatar + name + price */}
       <div className="flex items-start gap-3">
-        <Avatar size="md" name={f.name} photo={f.photo} gradient={ringGradient(f.ring)} />
+        <Avatar size="md" name={f.name} photo={f.photo} />
         <div className="flex-1 leading-tight pt-0.5">
           <div className="font-display text-white text-[15px] font-semibold tracking-tight">
             {f.name}
