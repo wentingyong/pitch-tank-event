@@ -17,7 +17,7 @@ export function CollapsedFounder({ f, onExpand }: CollapsedFounderProps) {
     >
       <GlassCard tone="frame" size="sm">
         <div className="flex items-center gap-2.5">
-          <Avatar size="sm" name={f.name} gradient={ringGradient(f.ring)} />
+          <Avatar size="sm" name={f.name} photo={f.photo} gradient={ringGradient(f.ring)} />
           <div className="leading-tight min-w-0 flex-1">
             <div className="font-display text-white text-[13px] font-semibold truncate">
               {f.name}

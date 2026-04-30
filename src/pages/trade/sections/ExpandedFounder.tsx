@@ -31,7 +31,7 @@ export function ExpandedFounder({ f, onCollapse, onTrade }: ExpandedFounderProps
 
       {/* Top row: avatar + name + price */}
       <div className="flex items-start gap-3">
-        <Avatar size="md" name={f.name} gradient={ringGradient(f.ring)} />
+        <Avatar size="md" name={f.name} photo={f.photo} gradient={ringGradient(f.ring)} />
         <div className="flex-1 leading-tight pt-0.5">
           <div className="font-display text-white text-[15px] font-semibold tracking-tight">
             {f.name}

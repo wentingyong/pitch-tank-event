@@ -1,62 +1,73 @@
 import { cva, type VariantProps } from 'class-variance-authority';
-import { forwardRef, type HTMLAttributes } from 'react';
+import { forwardRef, useEffect, useState, type HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-const avatarVariants = cva(
-  'inline-flex items-center justify-center rounded-full font-display font-medium text-white overflow-hidden',
-  {
-    variants: {
-      size: {
-        sm: 'w-8 h-8 text-xs',
-        md: 'w-10 h-10 text-sm',
-        lg: 'w-14 h-14 text-base',
-        xl: 'w-20 h-20 text-lg',
-      },
+const avatarSize = cva('relative inline-block', {
+  variants: {
+    size: {
+      sm: 'w-8 h-8 text-xs',
+      md: 'w-10 h-10 text-sm',
+      lg: 'w-14 h-14 text-base',
+      xl: 'w-20 h-20 text-lg',
     },
-    defaultVariants: {
-      size: 'md',
-    },
-  }
-);
+  },
+  defaultVariants: {
+    size: 'md',
+  },
+});
 
 export interface AvatarProps
   extends HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof avatarVariants> {
-  /** Image URL (e.g. dicebear / pravatar). If load fails, fallback to initials. */
-  src?: string;
-  /** Display name; first character used as initials fallback. */
+    VariantProps<typeof avatarSize> {
+  /** Real portrait URL. Falls back to initial+gradient on load failure. */
+  photo?: string;
+  /** Display name; first character used as initial. */
   name?: string;
-  /** Optional gradient hex stops for the initials background. */
+  /** Gradient hex stops for the ring + glow + initial background. */
   gradient?: [string, string];
 }
 
 export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
-  ({ className, size, src, name, gradient, ...props }, ref) => {
+  ({ className, size, photo, name, gradient, ...props }, ref) => {
+    const [broken, setBroken] = useState(false);
+
+    useEffect(() => {
+      setBroken(false);
+    }, [photo]);
+
     const initial = (name?.[0] ?? '?').toUpperCase();
     const bgGradient = gradient
       ? `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`
       : 'linear-gradient(135deg, var(--c-blue), var(--c-purple))';
+    const showPhoto = !!photo && !broken;
 
     return (
-      <div
-        ref={ref}
-        className={cn(avatarVariants({ size }), className)}
-        style={{ background: bgGradient }}
-        {...props}
-      >
-        {src ? (
-          <img
-            src={src}
-            alt={name ?? ''}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // Hide broken image so initials show through
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        ) : (
-          <span>{initial}</span>
-        )}
+      <div ref={ref} className={cn(avatarSize({ size }), className)} {...props}>
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -inset-[3px] rounded-full opacity-55 blur-md"
+          style={{ background: bgGradient }}
+        />
+        <span
+          className={cn(
+            'relative flex h-full w-full items-center justify-center overflow-hidden rounded-full font-display font-medium text-white',
+            showPhoto && 'p-[2px]'
+          )}
+          style={{ background: bgGradient }}
+        >
+          {showPhoto ? (
+            <img
+              src={photo}
+              alt={name ?? ''}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full rounded-full object-cover"
+              onError={() => setBroken(true)}
+            />
+          ) : (
+            initial
+          )}
+        </span>
       </div>
     );
   }
