@@ -36,7 +36,18 @@ body {
   font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
 }
 
-/* === Hide scrollbar (utility) === */
+/* === Hide scrollbars globally while preserving scroll behavior === */
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar {
   -ms-overflow-style: none;
