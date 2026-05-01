@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowRight, ClipboardList, Info, X } from "lucide-react";
+import { ArrowRight, ClipboardList, Info, Loader2, X } from "lucide-react";
 import {
   type FormEvent,
   type ReactNode,
@@ -20,6 +20,8 @@ export interface BuySellDialogProps {
   founder: Founder | null;
   initialSide: TradeSide;
 }
+
+type SubmitState = "idle" | "submitting" | "sent";
 
 const AVAILABLE_BALANCE = 504_112.55;
 const SHARES_OWNED = 12_097;
@@ -92,6 +94,7 @@ export function BuySellDialog({
   const [note, setNote] = useState("");
   const [noteTouched, setNoteTouched] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const noteId = useId();
   const noteErrorId = useId();
   const parsedAmount = Number(amount);
@@ -105,6 +108,7 @@ export function BuySellDialog({
       setNote("");
       setNoteTouched(false);
       setSubmitAttempted(false);
+      setSubmitState("idle");
     }
   }, [founder?.id, initialSide, open]);
 
@@ -152,6 +156,10 @@ export function BuySellDialog({
   const notePlaceholder = isBuy
     ? "e.g. Strong pitch, clear market need, great traction..."
     : "e.g. Taking profits, reducing exposure, market cooling off...";
+  const submitLabel = isBuy ? "Commit" : "Sell";
+  const titleParts = title.split(" ");
+  const titleHead = titleParts.slice(0, -1).join(" ");
+  const titleTail = titleParts[titleParts.length - 1] ?? "";
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -160,22 +168,34 @@ export function BuySellDialog({
     if (note.trim().length === 0) {
       return;
     }
+    if (submitState !== "idle") return;
 
-    console.log("mock trade submitted", {
-      founderId: founder.id,
-      side,
-      amount: safeAmount,
-      note: note.trim(),
-    });
-    onOpenChange(false);
+    setSubmitState("submitting");
+    window.setTimeout(() => {
+      console.log("mock trade submitted", {
+        founderId: founder.id,
+        side,
+        amount: safeAmount,
+        note: note.trim(),
+      });
+      setSubmitState("sent");
+      window.setTimeout(() => onOpenChange(false), 720);
+    }, 850);
   };
 
   const handleMax = () => {
     setAmount(String(isBuy ? AVAILABLE_BALANCE : SHARES_OWNED * founder.price));
   };
 
+  const isPending = submitState !== "idle";
+
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root open={open} onOpenChange={(next) => {
+      // Block closing while sending, but allow it once "sent" so the
+      // success state can fade out gracefully.
+      if (!next && submitState === "submitting") return;
+      onOpenChange(next);
+    }}>
       <Dialog.Portal>
         <Dialog.Overlay className="trade-dialog-overlay" />
         <Dialog.Content
@@ -190,22 +210,28 @@ export function BuySellDialog({
           <GlassCard tone="frame" size="lg" className="trade-dialog-content">
             <form onSubmit={handleSubmit} className="trade-dialog-form">
               <div className="trade-dialog-header">
-                <div>
-                  <Dialog.Title className="trade-dialog-title">
-                    {title}
-                  </Dialog.Title>
-                </div>
-                <div className="trade-dialog-header-actions">
-                  <span className="trade-dialog-live">Live</span>
-                  <Dialog.Close asChild>
-                    <IconButton
-                      type="button"
-                      size="md"
-                      aria-label="Close trade dialog"
-                      icon={<X strokeWidth={1.5} />}
-                    />
-                  </Dialog.Close>
-                </div>
+                <Dialog.Title className="trade-dialog-title">
+                  {titleHead && (
+                    <>
+                      <span className="trade-dialog-title-text">{titleHead}</span>{" "}
+                    </>
+                  )}
+                  <span className="trade-dialog-title-tail">
+                    {titleTail}
+                    <span className="trade-dialog-live" aria-label="Live market">
+                      <span className="trade-dialog-live-text">Live</span>
+                      <span aria-hidden className="trade-dialog-live-dot" />
+                    </span>
+                  </span>
+                </Dialog.Title>
+                <Dialog.Close asChild>
+                  <IconButton
+                    type="button"
+                    size="md"
+                    aria-label="Close trade dialog"
+                    icon={<X strokeWidth={1.5} />}
+                  />
+                </Dialog.Close>
               </div>
 
               <div className="trade-dialog-stats">
@@ -235,6 +261,7 @@ export function BuySellDialog({
                   aria-pressed={isBuy}
                   className="w-full"
                   onClick={() => setSide("buy")}
+                  disabled={isPending}
                 >
                   ▲ Buy
                 </Button>
@@ -245,6 +272,7 @@ export function BuySellDialog({
                   aria-pressed={!isBuy}
                   className="w-full"
                   onClick={() => setSide("sell")}
+                  disabled={isPending}
                 >
                   ▼ Sell
                 </Button>
@@ -270,6 +298,7 @@ export function BuySellDialog({
                       type="number"
                       min="0"
                       step="1"
+                      disabled={isPending}
                     />
                   </div>
                   <Button
@@ -278,6 +307,7 @@ export function BuySellDialog({
                     size="lg"
                     className="trade-dialog-max"
                     onClick={handleMax}
+                    disabled={isPending}
                   >
                     {maxLabel}
                   </Button>
@@ -347,6 +377,7 @@ export function BuySellDialog({
                   onBlur={() => setNoteTouched(true)}
                   onChange={(event) => setNote(event.target.value)}
                   className="trade-dialog-textarea"
+                  disabled={isPending}
                 />
                 <div className="trade-dialog-note-meta">
                   <div
@@ -358,7 +389,7 @@ export function BuySellDialog({
                       ? `A short ${isBuy ? "trade" : "sell"} note is required.`
                       : null}
                   </div>
-                  <span className="num text-pt-text-2">{note.length}/500</span>
+                  <span className="trade-dialog-note-count num">{note.length}/500</span>
                 </div>
               </div>
 
@@ -369,6 +400,7 @@ export function BuySellDialog({
                     variant="secondary"
                     size="lg"
                     className="w-full"
+                    disabled={submitState === "submitting"}
                   >
                     Cancel
                   </Button>
@@ -377,10 +409,30 @@ export function BuySellDialog({
                   type="submit"
                   variant={isBuy ? "buy" : "sell"}
                   size="lg"
-                  className="w-full"
+                  className="w-full trade-dialog-submit"
+                  data-state={submitState}
+                  disabled={isPending}
                 >
-                  {isBuy ? "Confirm Commitment" : "Confirm Sale"}
-                  <ArrowRight aria-hidden="true" size={18} strokeWidth={1.5} />
+                  {submitState === "sent" ? (
+                    <span className="trade-dialog-submit-label">Done</span>
+                  ) : (
+                    <>
+                      <span className="trade-dialog-submit-label">
+                        {submitLabel}
+                      </span>
+                      <span className="trade-dialog-submit-icon" aria-hidden>
+                        {submitState === "submitting" ? (
+                          <Loader2
+                            size={18}
+                            strokeWidth={2}
+                            className="trade-dialog-spin"
+                          />
+                        ) : (
+                          <ArrowRight size={18} strokeWidth={1.5} />
+                        )}
+                      </span>
+                    </>
+                  )}
                 </Button>
               </div>
             </form>
