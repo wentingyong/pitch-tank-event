@@ -24,8 +24,8 @@ export function ExpandedFounder({ f, onCollapse, onTrade }: ExpandedFounderProps
         type="button"
         aria-label="Collapse"
         onClick={onCollapse}
-        className="z-20 p-1 pointer-events-auto hover:brightness-125 transition-all"
-        style={{ position: "absolute", top: 12, right: 12 }}
+        className="p-1 pointer-events-auto hover:brightness-125 transition-all"
+        style={{ position: "absolute", top: 12, right: 12, zIndex: 20 }}
       >
         <ChevronUp size={16} color="#A7B3C9" strokeWidth={1.5} />
       </button>
