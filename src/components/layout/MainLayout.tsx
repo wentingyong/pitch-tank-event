@@ -27,12 +27,15 @@ export function MainLayout() {
     navigate(`/${next}`);
   };
 
+  // Routes that own their own navigation (back arrow) and hide the bottom nav.
+  const hideBottomNav = location.pathname.startsWith('/rankings');
+
   return (
     <div className="page-bg min-h-dvh flex justify-center overflow-x-hidden">
       <PageContainer>
         <Outlet />
       </PageContainer>
-      <BottomNav tab={navTab} setTab={handleTabChange} />
+      {!hideBottomNav && <BottomNav tab={navTab} setTab={handleTabChange} />}
     </div>
   );
 }
