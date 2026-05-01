@@ -14,8 +14,10 @@
 /* === Global === */
 html, body {
   width: 100%;
-  /* Document-level scroll lets mobile browsers auto-hide the URL bar */
-  overflow-x: hidden;
+  /* Use `clip` (not `hidden`): hidden silently promotes overflow-y to
+     `auto`, which turns body into a scroll-container that swallows
+     wheel events without ever actually scrolling. */
+  overflow-x: clip;
   background: var(--c-bg-deep);
   color: var(--c-text-1);
   -webkit-font-smoothing: antialiased;

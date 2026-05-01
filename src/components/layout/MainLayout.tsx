@@ -31,7 +31,7 @@ export function MainLayout() {
   const hideBottomNav = location.pathname.startsWith('/rankings');
 
   return (
-    <div className="page-bg min-h-dvh flex justify-center overflow-x-hidden">
+    <div className="page-bg min-h-dvh flex justify-center overflow-x-clip">
       <PageContainer>
         <Outlet />
       </PageContainer>
