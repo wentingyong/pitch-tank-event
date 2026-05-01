@@ -20,7 +20,7 @@ export function PageContainer({ children, className }: PageContainerProps) {
   return (
     <main
       className={cn(
-        "relative h-dvh w-full max-w-[430px] mx-auto overflow-y-auto no-scrollbar px-6 sm:px-7 pb-32",
+        "relative w-full max-w-[430px] mx-auto  no-scrollbar px-6 sm:px-7 pb-32",
         className,
       )}
     >
