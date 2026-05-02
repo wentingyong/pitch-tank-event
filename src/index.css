@@ -62,3 +62,14 @@ body {
     padding-bottom: calc(env(safe-area-inset-bottom) + 20px) !important;
   }
 }
+
+/* === Form-control baseline ===
+   iOS Safari auto-zooms text inputs whose font-size is < 16px on
+   focus and never zooms back out. Enforce 16px globally so any new
+   input/textarea/select stays zoom-safe by default; components that
+   really need a different visual size override via a class. */
+input,
+textarea,
+select {
+  font-size: 16px;
+}

@@ -101,6 +101,8 @@ export function ChatComposer({ onSend }: ChatComposerProps) {
                 : "ring-white/12 focus-within:ring-pt-blue/60",
             )}
           >
+            {/* font-size MUST stay >= 16px: iOS Safari auto-zooms inputs
+                under 16px on focus and never zooms back out. */}
             <input
               ref={inputRef}
               type="text"
@@ -108,7 +110,7 @@ export function ChatComposer({ onSend }: ChatComposerProps) {
               onChange={(e) => setText(e.target.value)}
               placeholder="@Question  Ask a question to the founder"
               aria-label="Message"
-              className="flex-1 bg-transparent border-0 outline-none px-3.5 text-[13px] text-white placeholder:text-pt-text-3 min-w-0"
+              className="flex-1 bg-transparent border-0 outline-none px-3.5 text-[16px] text-white placeholder:text-pt-text-3 min-w-0"
             />
             <div ref={emojiRootRef} className="relative shrink-0">
               <button
