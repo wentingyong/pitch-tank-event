@@ -49,14 +49,16 @@ export function RankingsPage() {
 
   return (
     <div className="relative isolate pt-6">
+      {/* bg + skyline match BottomNav's phone-column constraint:
+          centered horizontally, capped at 430px wide. */}
       <div
         aria-hidden
-        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat pointer-events-none"
+        className="fixed top-0 bottom-0 left-1/2 -translate-x-1/2 -z-10 w-full max-w-[430px] bg-cover bg-center bg-no-repeat pointer-events-none"
         style={{ backgroundImage: "url(/leaderboard/leaderboard-bg.webp)" }}
       />
       <div
         aria-hidden
-        className="fixed inset-x-0 bottom-0 z-[5] pointer-events-none"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[5] w-full max-w-[430px] pointer-events-none"
       >
         <img
           src="/leaderboard/skyline.webp"
