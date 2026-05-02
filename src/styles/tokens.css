@@ -3,7 +3,7 @@
    ============================================================ */
 
 :root {
-  /* === COLORS · 视觉层 === */
+  /* === COLORS · visual layer === */
   --c-blue:        #4F7CFF;
   --c-blue-deep:   #2B4FE0;
   --c-purple:      #A259FF;
@@ -36,7 +36,7 @@
 }
 
 /* ============================================================
-   PAGE BACKGROUND · 星空 + 微弱色斑
+   PAGE BACKGROUND · starfield + subtle color blooms
    ============================================================ */
 .page-bg {
   background:
@@ -50,7 +50,7 @@
 }
 
 /* ============================================================
-   GLASS CARD · 基础 + 6 个 tone × active 修饰
+   GLASS CARD · base + 6 tones × active modifier
    ============================================================ */
 .glass-card {
   position: relative;
@@ -81,7 +81,7 @@
   pointer-events: none;
 }
 
-/* === TONE-FRAME · 容器 (无 bg) === */
+/* === TONE-FRAME · container (no fill) === */
 .glass-card.tone-frame {
   background: transparent;
   backdrop-filter: none;
@@ -123,7 +123,7 @@
   z-index: 1;
 }
 
-/* === TONE-PRIMARY · 紫蓝水平渐变 (有 bg) === */
+/* === TONE-PRIMARY · horizontal blue→purple gradient (with bg) === */
 .glass-card.tone-primary {
   background:
     linear-gradient(90deg,
@@ -149,7 +149,7 @@
   );
 }
 
-/* === TONE-PURPLE · active 选中 === */
+/* === TONE-PURPLE · active / selected === */
 .glass-card.tone-purple {
   background:
     radial-gradient(ellipse 70% 60% at 50% 0%, rgba(162,89,255,0.20) 0%, transparent 70%),
@@ -163,7 +163,7 @@
     rgba(79,124,255,0.4) 50%, rgba(162,89,255,0.6) 67%, rgba(220,200,255,1) 83%, rgba(162,89,255,0.4));
 }
 
-/* === TONE-CYAN · positive / 上涨 === */
+/* === TONE-CYAN · positive / uptrend === */
 .glass-card.tone-cyan {
   background:
     radial-gradient(ellipse 80% 70% at 50% 0%, rgba(0,229,255,0.22) 0%, transparent 70%),
@@ -196,7 +196,7 @@
     rgba(255,138,0,0.6) 94%, rgba(162,89,255,0.5));
 }
 
-/* === TONE-NEUTRAL · 列表项默认 === */
+/* === TONE-NEUTRAL · default list item === */
 .glass-card.tone-neutral {
   background:
     radial-gradient(ellipse 60% 50% at 0% 0%, rgba(79,124,255,0.18) 0%, transparent 70%),
@@ -218,7 +218,7 @@
   );
 }
 
-/* === TONE-NEUTRAL · ACTIVE (只调亮 border) === */
+/* === TONE-NEUTRAL · ACTIVE (brightens border only) === */
 .glass-card.tone-neutral.active {
   background:
     radial-gradient(ellipse 60% 50% at 0% 0%, rgba(79,124,255,0.18) 0%, transparent 70%),
@@ -358,7 +358,7 @@
   pointer-events: none;
 }
 
-/* === PRIMARY · 紫蓝渐变 === */
+/* === PRIMARY · blue→purple gradient === */
 .btn-primary {
   color: var(--c-metal-white);
   text-shadow: 0 0 12px rgba(184,212,255,0.6);
@@ -385,7 +385,7 @@
   );
 }
 
-/* === FEATURED · purple+orange (用 <span> 包文字) === */
+/* === FEATURED · purple+orange (wrap text in <span>) === */
 .btn-featured {
   background:
     radial-gradient(ellipse 60% 100% at 0% 50%, rgba(162,89,255,0.18) 0%, transparent 60%),
@@ -432,13 +432,13 @@
     rgba(180,60,30,0.4) 75%, rgba(255,138,0,0.4));
 }
 
-/* === SECONDARY · 白色 ghost === */
+/* === SECONDARY · white ghost === */
 .btn-secondary { color: var(--c-text-1); background: rgba(255,255,255,0.03); }
 .btn-secondary::after {
   background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.2));
 }
 
-/* === TERTIARY · 纯文字 === */
+/* === TERTIARY · text-only === */
 .btn-tertiary { background: transparent; color: var(--c-text-2); box-shadow: none; }
 .btn-tertiary::after { display: none; }
 .btn-tertiary:hover { color: var(--c-text-1); }
