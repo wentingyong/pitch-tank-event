@@ -22,14 +22,14 @@ export function AiSummaryBar({ count, question, onExpand }: AiSummaryBarProps) {
           <Sparkles
             size={18}
             strokeWidth={1.75}
-            className="text-pt-blue shrink-0"
+            className="text-pt-cyan shrink-0"
           />
           <div className="leading-tight min-w-0 flex-1">
             <div className="text-[10px] text-pt-text-2 font-display tracking-wider uppercase">
               AI Summary
             </div>
             <div className="font-display text-white text-[13px] font-semibold truncate mt-0.5">
-              <span className="text-pt-blue num mr-1">[{count}]</span>
+              <span className="text-pt-cyan num mr-1">[{count}]</span>
               {question}
             </div>
           </div>
