@@ -1,4 +1,4 @@
-import { Info, HelpCircle } from "lucide-react";
+import { Info } from "lucide-react";
 import { Avatar, IconButton } from "@/components/primitives";
 import { CURRENT_USER } from "@/lib/current-user";
 
@@ -20,11 +20,18 @@ export function Header() {
           aria-label="Info"
           icon={<Info size={16} strokeWidth={1.5} />}
         />
-        <IconButton
-          size="md"
+        <button
+          type="button"
           aria-label="Help"
-          icon={<HelpCircle size={16} strokeWidth={1.5} />}
-        />
+          className="shrink-0 w-10 h-10 hover:brightness-125 transition-all"
+        >
+          <img
+            src="/chat/chat-question.png"
+            alt=""
+            aria-hidden
+            className="w-full h-full object-contain"
+          />
+        </button>
       </div>
     </div>
   );
