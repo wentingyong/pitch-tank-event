@@ -28,7 +28,9 @@ export function MainLayout() {
   };
 
   // Routes that own their own navigation (back arrow) and hide the bottom nav.
-  const hideBottomNav = location.pathname.startsWith('/rankings');
+  const hideBottomNav =
+    location.pathname.startsWith('/rankings') ||
+    location.pathname.startsWith('/chat');
 
   return (
     <div className="page-bg min-h-dvh flex justify-center overflow-x-clip">
