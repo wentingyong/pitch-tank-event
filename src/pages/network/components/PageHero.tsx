@@ -1,7 +1,7 @@
 /**
  * PageHero — "PITCHTANK / NETWORK / Meet the people powering this market."
  *
- * Mirrors the gradient-text trick used on RankingsPage.
+ * Mirrors the gradient-text trick used on LeaderboardPage.
  */
 export function PageHero() {
   return (
