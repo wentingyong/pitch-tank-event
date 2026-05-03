@@ -10,7 +10,7 @@ import {
 } from '@/components/primitives';
 import { Pill } from '@/pages/network/components/Pill';
 import { PortraitCard } from '@/pages/network/components/PortraitCard';
-import { loadProfile } from '@/lib/profile-storage';
+import { CURRENT_USER } from '@/lib/current-user';
 
 const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
 
@@ -20,7 +20,7 @@ export interface QrDialogProps {
 }
 
 export function QrDialog({ open, onOpenChange }: QrDialogProps) {
-  const profile = loadProfile();
+  const profile = CURRENT_USER;
   const handle = slugify(profile.name);
   const url = `pitchtank.app/u/${handle}`;
   const fullUrl = `https://${url}`;

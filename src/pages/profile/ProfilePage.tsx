@@ -17,13 +17,12 @@ import {
 } from '@/components/primitives';
 import { Pill } from '@/pages/network/components/Pill';
 import { PortraitCard } from '@/pages/network/components/PortraitCard';
-import { loadProfile, saveProfile } from '@/lib/profile-storage';
-import type { CurrentUser } from '@/lib/current-user';
+import { CURRENT_USER, type CurrentUser } from '@/lib/current-user';
 import { QrDialog } from './QrDialog';
 import { SettingsDialog } from './SettingsDialog';
 
 export function ProfilePage() {
-  const [profile, setProfile] = useState<CurrentUser>(loadProfile);
+  const [profile, setProfile] = useState<CurrentUser>(CURRENT_USER);
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<CurrentUser>(profile);
   const [qrOpen, setQrOpen] = useState(false);
@@ -37,7 +36,6 @@ export function ProfilePage() {
   };
 
   const save = () => {
-    saveProfile(draft);
     setProfile(draft);
     setIsEditing(false);
   };
