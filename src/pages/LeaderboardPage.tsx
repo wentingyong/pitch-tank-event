@@ -58,7 +58,7 @@ export function LeaderboardPage() {
       />
       <div
         aria-hidden
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-[5] w-full max-w-[430px] pointer-events-none"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 -z-[5] w-full max-w-[430px] pointer-events-none"
       >
         <img
           src="/leaderboard/skyline.webp"
