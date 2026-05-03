@@ -19,7 +19,7 @@ export function MainLayout() {
 
   // BottomNav only knows 5 tabs; for /playground it should
   // highlight nothing (or default to trade).
-  const navTab = ['rankings', 'chat', 'trade', 'network', 'portfolio'].includes(tab)
+  const navTab = ['leaderboard', 'chat', 'trade', 'network', 'profile'].includes(tab)
     ? tab
     : 'trade';
 
@@ -29,7 +29,7 @@ export function MainLayout() {
 
   // Routes that own their own navigation (back arrow) and hide the bottom nav.
   const hideBottomNav =
-    location.pathname.startsWith('/rankings') ||
+    location.pathname.startsWith('/leaderboard') ||
     location.pathname.startsWith('/chat');
 
   return (

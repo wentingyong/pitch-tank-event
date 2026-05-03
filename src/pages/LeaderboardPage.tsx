@@ -10,7 +10,7 @@ import {
 } from "@/components/primitives";
 import type { TabOption } from "@/components/primitives";
 import { cn } from "@/lib/utils";
-import { investors, founders, ME_ID, type Player } from "./rankings/fixtures";
+import { investors, founders, ME_ID, type Player } from "./leaderboard/fixtures";
 
 type Board = "investors" | "founders";
 type Rank = 1 | 2 | 3;
@@ -32,7 +32,7 @@ const PODIUM_AMOUNT_COLOR = {
   3: "text-pt-purple",
 } as const;
 
-export function RankingsPage() {
+export function LeaderboardPage() {
   const navigate = useNavigate();
   const [board, setBoard] = useState<Board>("investors");
   const players = board === "investors" ? investors : founders;

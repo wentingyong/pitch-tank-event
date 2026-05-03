@@ -1,20 +1,19 @@
 const navIcons = {
-	rankings: "/nav-icons/ranking.svg",
+	leaderboard: "/nav-icons/ranking.svg",
 	chat: "/nav-icons/chat.svg",
 	network: "/nav-icons/network.svg",
-	portfolio: "/nav-icons/portfolio.svg"
+	profile: "/nav-icons/portfolio.svg"
 };
 
-// `icon` doubles as the route key (rankings/portfolio routes unchanged);
-// only the visible label is renamed per the new nav design.
+// `icon` doubles as the route key.
 const sideItemsLeft = [
-	{ icon: "rankings", label: "Leaderboard", tone: "cyan" },
+	{ icon: "leaderboard", label: "Leaderboard", tone: "cyan" },
 	{ icon: "chat", label: "Chat", tone: "cyan" }
 ];
 
 const sideItemsRight = [
 	{ icon: "network", label: "Network", tone: "magenta" },
-	{ icon: "portfolio", label: "Profile", tone: "magenta" }
+	{ icon: "profile", label: "Profile", tone: "magenta" }
 ];
 
 const labelFont = {
