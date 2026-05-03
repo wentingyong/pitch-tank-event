@@ -7,3 +7,4 @@ export { TrendValue, type TrendValueProps } from './TrendValue';
 export { Money, type MoneyProps } from './Money';
 export { Timer, type TimerProps } from './Timer';
 export { Sentiment, type SentimentProps } from './Sentiment';
+export { IridescentArc, type IridescentArcProps } from './IridescentArc';

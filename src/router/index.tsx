@@ -4,7 +4,7 @@ import { Trade } from '@/pages/Trade';
 import { LeaderboardPage } from '@/pages/LeaderboardPage';
 import { ChatPage } from '@/pages/ChatPage';
 import { NetworkPage } from '@/pages/NetworkPage';
-import { ProfilePage } from '@/pages/ProfilePage';
+import { ProfilePage } from '@/pages/profile/ProfilePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { Playground } from '@/pages/Playground';
 

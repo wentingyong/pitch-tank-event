@@ -2,6 +2,7 @@ import { BalanceRow } from "./BalanceRow";
 import { EventPerformance } from "./EventPerformance";
 import { YourHoldings } from "./YourHoldings";
 import type { TradeSide } from "../BuySellDialog";
+import { IridescentArc } from "@/components/primitives";
 
 export interface TradeTopCardProps {
   secondsLeft: number;
@@ -52,67 +53,11 @@ export function TradeTopCard({ secondsLeft, onTrade }: TradeTopCardProps) {
         <BalanceRow secondsLeft={secondsLeft} />
         <EventPerformance />
         <YourHoldings onTrade={onTrade} />
-        <HoldingsArcDivider />
+        <IridescentArc
+          className="-mx-6 sm:-mx-7"
+          style={{ marginTop: -4, marginBottom: -8 }}
+        />
       </div>
-    </div>
-  );
-}
-
-function HoldingsArcDivider() {
-  return (
-    <div
-      aria-hidden
-      className="relative -mx-6 sm:-mx-7 h-16 pointer-events-none"
-      style={{ marginTop: -4, marginBottom: -8 }}
-    >
-      <svg
-        className="absolute inset-x-0 top-0 w-full h-full overflow-visible"
-        viewBox="0 0 800 80"
-        preserveAspectRatio="none"
-        style={{
-          filter:
-            "drop-shadow(0 0 5px rgba(232,242,255,0.65)) " +
-            "drop-shadow(0 0 14px rgba(162,89,255,0.75)) " +
-            "drop-shadow(0 0 28px rgba(79,124,255,0.50)) " +
-            "drop-shadow(0 0 48px rgba(162,89,255,0.32))",
-        }}
-      >
-        <defs>
-          <linearGradient id="holdings-arc-grad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#A259FF" stopOpacity="0" />
-            <stop offset="12%" stopColor="#A259FF" stopOpacity="0.9" />
-            <stop offset="35%" stopColor="#4F7CFF" />
-            <stop offset="55%" stopColor="#A259FF" />
-            <stop offset="78%" stopColor="#FF8A00" stopOpacity="0.95" />
-            <stop offset="100%" stopColor="#FF8A00" stopOpacity="0" />
-          </linearGradient>
-          {/* metal-white sheen — sky meeting ocean: a thin specular highlight */}
-          <linearGradient id="holdings-arc-sheen" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#E8F2FF" stopOpacity="0" />
-            <stop offset="25%" stopColor="#E8F2FF" stopOpacity="0.55" />
-            <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.9" />
-            <stop offset="75%" stopColor="#E8F2FF" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#E8F2FF" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {/* Main rainbow arc */}
-        <path
-          d="M 0 18 Q 400 78 800 18"
-          stroke="url(#holdings-arc-grad)"
-          strokeWidth="2.5"
-          fill="none"
-          strokeLinecap="round"
-        />
-        {/* Metal-white sheen — thin inset highlight catching the light */}
-        <path
-          d="M 90 24 Q 400 70 710 24"
-          stroke="url(#holdings-arc-sheen)"
-          strokeWidth="0.9"
-          fill="none"
-          strokeLinecap="round"
-          opacity="0.95"
-        />
-      </svg>
     </div>
   );
 }
